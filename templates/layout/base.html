@@ -1,0 +1,412 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PlacementHub | Launch Your Career{% endblock %}</title>
+    
+    <!-- Scripts & Fonts -->
+    <!-- Scripts & Fonts -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@200;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent-red: #ef233c;
+            --accent-red-glow: rgba(239, 35, 60, 0.5);
+            --zinc-950: #09090b;
+        }
+
+        /* Fallback for when Tailwind fails to load */
+        body {
+            background-color: #09090b !important;
+            color: #ffffff !important;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        nav {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        .flex { display: flex !important; }
+        .flex-col { flex-direction: column !important; }
+        .flex-row { flex-direction: row !important; }
+        .items-center { align-items: center !important; }
+        .justify-between { justify-content: space-between !important; }
+        .justify-center { justify-content: center !important; }
+        .grid { display: grid !important; }
+        .gap-2 { gap: 0.5rem !important; }
+        .gap-3 { gap: 0.75rem !important; }
+        .gap-4 { gap: 1rem !important; }
+        .gap-6 { gap: 1.5rem !important; }
+        .gap-8 { gap: 2rem !important; }
+        
+        .p-6 { padding: 1.5rem !important; }
+        .p-8 { padding: 2rem !important; }
+        .p-10 { padding: 2.5rem !important; }
+        .p-12 { padding: 3rem !important; }
+        
+        .bg-zinc-900 { background-color: #18181b !important; }
+        .bg-black { background-color: #000000 !important; }
+        .rounded-full { border-radius: 9999px !important; }
+        .rounded-2xl { border-radius: 1rem !important; }
+        .rounded-3xl { border-radius: 1.5rem !important; }
+        
+        .hidden { display: none !important; }
+        @media (min-width: 768px) {
+            .md\:flex { display: flex !important; }
+            .md\:block { display: block !important; }
+            .md\:flex-row { flex-direction: row !important; }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        }
+        @media (min-width: 1024px) {
+            .lg\:block { display: block !important; }
+            .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        }
+
+        /* Custom Animations */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes border-spin {
+            from { --gradient-angle: 0deg; }
+            to { --gradient-angle: 360deg; }
+        }
+
+        @keyframes animStar {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-2000px); }
+        }
+
+        @property --gradient-angle { 
+            syntax: "<angle>"; 
+            initial-value: 0deg; 
+            inherits: false; 
+        }
+
+        .animate-fade-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+        }
+
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        /* Shiny CTA Button */
+        .shiny-cta {
+            --gradient-angle: 0deg;
+            position: relative;
+            overflow: hidden;
+            border-radius: 9999px;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(#000000, #000000) padding-box,
+            conic-gradient(from var(--gradient-angle), transparent 0%, #ef233c 5%, #ef233c 15%, #ef233c 30%, transparent 40%, transparent 100%) border-box;
+            border: 2px solid transparent;
+            cursor: pointer;
+            isolation: isolate;
+            animation: border-spin 2.5s linear infinite;
+        }
+
+        .shiny-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, white 0.5px, transparent 0);
+            background-size: 4px 4px;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        /* Parallax Stars */
+        .stars-1 { box-shadow: 234px 124px #fff, 654px 345px #fff, 876px 12px #fff, 1200px 800px #fff, 400px 1500px #fff, 1800px 200px #fff, 100px 1000px #fff, 900px 1900px #fff, 500px 600px #fff, 1400px 100px #fff, 300px 400px #fff, 1600px 1200px #fff; }
+        .stars-2 { box-shadow: 123px 456px #fff, 789px 234px #fff, 456px 890px #fff, 1100px 300px #fff, 200px 1200px #fff, 1500px 500px #fff, 600px 1700px #fff, 1300px 900px #fff; }
+
+        .gradient-blur {
+            position: fixed;
+            z-index: 40;
+            inset: 0 0 auto 0;
+            height: 120px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            backdrop-filter: blur(8px);
+            mask-image: linear-gradient(to bottom, black, transparent);
+        }
+
+        .selection-red::selection {
+            background: #ef233c;
+            color: white;
+        }
+
+        .text-stroke {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
+            color: transparent;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(239, 35, 60, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef233c;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="selection-red bg-black text-white font-inter">
+    
+    <!-- Global Background -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-[#1a0505] to-black"></div>
+        <div class="absolute top-0 left-0 w-[1px] h-[1px] bg-transparent stars-1 animate-[animStar_50s_linear_infinite]"></div>
+        <div class="absolute top-0 left-0 w-[2px] h-[2px] bg-transparent stars-2 animate-[animStar_80s_linear_infinite]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/5 rounded-full blur-[120px]"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_80%)]"></div>
+    </div>
+
+    <!-- Top Blur Header -->
+    <div class="gradient-blur"></div>
+
+    <!-- Navbar -->
+    <header class="fixed top-0 left-0 w-full z-50 pt-6 px-4">
+        <nav class="max-w-5xl mx-auto flex items-center justify-between bg-black/60 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 shadow-2xl">
+            <div class="flex items-center gap-2">
+                <a href="{% url 'home' %}" class="flex items-center gap-2">
+                    <div class="w-5 h-5 bg-[#ef233c] rounded-sm rotate-45"></div>
+                    <span class="text-lg font-bold font-manrope tracking-tight">PlacementHub</span>
+                </a>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6">
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Dashboard</a>
+                <a href="{% url 'assessment_list' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Assessments</a>
+                <a href="{% url 'coding_test_list' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Coding Tests</a>
+                <a href="{% url 'resume_upload' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Resume AI</a>
+                <a href="{% url 'recommendations' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Career AI</a>
+                {% else %}
+                <a href="{% url 'home' %}" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Home</a>
+                <a href="#features" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Features</a>
+                <a href="#about" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">About</a>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                <div class="hidden md:flex items-center gap-3 pr-4 border-r border-white/10">
+                    <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-red-500 border border-red-500/30">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <span class="text-xs font-medium text-zinc-300">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <form method="POST" action="{% url 'logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Log Out</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="hidden md:block text-sm font-medium text-zinc-300 hover:text-white">Log In</a>
+                <a href="{% url 'register' %}" class="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-white/5 px-6 py-2 transition-transform active:scale-95">
+                    <span class="absolute inset-0 border border-white/10 rounded-full"></span>
+                    <span class="absolute inset-[-100%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,transparent_75%,#ef233c_100%)] opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span class="absolute inset-[1px] rounded-full bg-black"></span>
+                    <span class="relative z-10 flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                        Get Started <iconify-icon icon="lucide:arrow-right" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"></iconify-icon>
+                    </span>
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="relative z-10 pt-24 min-h-screen">
+        {% if messages %}
+        <div class="fixed top-24 right-6 z-[60] flex flex-col gap-3 pointer-events-none">
+            {% for message in messages %}
+            <div class="animate-fade-up pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-900/80 backdrop-blur-lg border {% if message.tags == 'success' %}border-green-500/50 text-green-200{% elif message.tags == 'error' %}border-red-500/50 text-red-200{% else %}border-blue-500/50 text-blue-200{% endif %} shadow-2xl">
+                <iconify-icon icon="{% if message.tags == 'success' %}lucide:check-circle{% elif message.tags == 'error' %}lucide:alert-circle{% else %}lucide:info{% endif %}" class="text-xl"></iconify-icon>
+                <span class="text-sm font-medium">{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-zinc-900 pt-20 pb-10 relative overflow-hidden z-10">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-24 relative z-10">
+            <div class="md:col-span-2">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-5 h-5 bg-[#ef233c] rounded-sm rotate-45"></div>
+                    <span class="text-2xl font-bold font-manrope tracking-tight">PlacementHub</span>
+                </div>
+                <p class="text-zinc-500 max-w-xs leading-relaxed">Pioneering the future of career preparation with artificial intelligence and human-centered design principles.</p>
+            </div>
+            
+            <div>
+                <h4 class="text-xs font-bold text-[#ef233c] uppercase tracking-widest mb-6">Platform</h4>
+                <ul class="space-y-4 text-zinc-400 text-sm">
+                    <li><a href="{% url 'assessment_list' %}" class="hover:text-white transition-colors">Assessments</a></li>
+                    <li><a href="{% url 'resume_upload' %}" class="hover:text-white transition-colors">Resume Analyzer</a></li>
+                    <li><a href="{% url 'recommendations' %}" class="hover:text-white transition-colors">Career AI</a></li>
+                    <li><a href="{% url 'mock_interview_list' %}" class="hover:text-white transition-colors">Mock Interviews</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="text-xs font-bold text-[#ef233c] uppercase tracking-widest mb-6">Company</h4>
+                <ul class="space-y-4 text-zinc-400 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Huge Footer Text -->
+        <div class="flex justify-center items-center py-10 opacity-20 pointer-events-none">
+            <h1 class="text-[15vw] leading-none font-bold font-manrope tracking-tighter text-stroke select-none">PLACEMENTHUB</h1>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 border-t border-zinc-900 pt-8 flex flex-col md:flex-row items-center justify-between text-zinc-600 text-[10px] uppercase tracking-widest">
+            <p>&copy; 2026 PlacementHub AI Inc. All rights reserved.</p>
+            <div class="flex gap-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-zinc-400">Twitter</a>
+                <a href="#" class="hover:text-zinc-400">LinkedIn</a>
+                <a href="#" class="hover:text-zinc-400">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AI Chatbot Widget -->
+  
+
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        let isChatOpen = false;
+
+        function toggleChat() {
+            isChatOpen = !isChatOpen;
+            if (isChatOpen) {
+                chatWindow.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                chatWindow.classList.add('opacity-100', 'scale-100', 'translate-y-0');
+                chatInput.focus();
+            } else {
+                chatWindow.classList.add('opacity-0', 'scale-95', 'translate-y-4');
+                chatWindow.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+            }
+        }
+
+        async function sendMessage() {
+            const msg = chatInput.value.trim();
+            if (!msg) return;
+
+            // Add user message
+            addMessage(msg, 'user');
+            chatInput.value = '';
+
+            // Loading indicator
+            const loadingId = addMessage('Thinking...', 'assistant', true);
+
+            try {
+                const response = await fetch('{% url "chatbot_api" %}', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const data = await response.json();
+                
+                removeMessage(loadingId);
+                
+                if (data.status === 'success') {
+                    addMessage(data.reply, 'assistant');
+                } else {
+                    addMessage('Sorry, I encountered an issue: ' + (data.message || 'Unknown error'), 'assistant');
+                }
+            } catch (err) {
+                removeMessage(loadingId);
+                addMessage('Chatbot is currently unavailable. Please try again later.', 'assistant');
+                console.error('Chatbot error:', err);
+            }
+        }
+
+        function addMessage(text, role, isLoading = false) {
+            const id = 'msg-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `flex flex-col gap-1 max-w-[85%] ${role === 'user' ? 'ml-auto items-end' : 'items-start animate-fade-up'}`;
+            
+            div.innerHTML = `
+                <div class="p-4 rounded-2xl text-sm leading-relaxed ${
+                    role === 'user' 
+                    ? 'bg-red-600 text-white rounded-tr-sm shadow-lg shadow-red-600/10' 
+                    : 'bg-white/5 border border-white/10 text-zinc-300 rounded-tl-sm'
+                } ${isLoading ? 'animate-pulse' : ''}">
+                    ${text}
+                </div>
+                <span class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest ${role === 'user' ? 'mr-2' : 'ml-2'}">
+                    ${role === 'user' ? 'You' : 'Assistant'}
+                </span>
+            `;
+            
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function removeMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        if (chatInput) {
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

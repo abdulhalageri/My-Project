@@ -1,0 +1,79 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Interview History | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 animate-fade-up">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold uppercase tracking-wider mb-6">
+                Personal Archive
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight text-white">Interview Archive</h1>
+            <p class="text-zinc-400 mt-4 text-lg">Review your past performance, transcripts, and AI feedback.</p>
+        </div>
+        <a href="{% url 'mock_interview_list' %}" class="px-6 py-3 rounded-full bg-white text-black font-bold text-sm hover:bg-zinc-200 transition-all flex items-center gap-2">
+            New Interview <iconify-icon icon="lucide:plus"></iconify-icon>
+        </a>
+    </div>
+
+    <!-- Sessions List -->
+    {% if sessions %}
+    <div class="grid grid-cols-1 gap-4 animate-fade-up" style="animation-delay: 0.1s;">
+        {% for session in sessions %}
+        <div class="glass-card p-6 flex flex-col md:flex-row items-center gap-8 group hover:border-white/20 transition-all">
+            <!-- Icon/Status -->
+            <div class="w-16 h-16 rounded-2xl {% if session.status == 'Completed' %}bg-emerald-500/10 text-emerald-500{% else %}bg-red-500/10 text-red-500{% endif %} flex items-center justify-center text-3xl flex-shrink-0">
+                {% if session.round_type == 'HR' %}🤝{% else %}💻{% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 text-center md:text-left">
+                <div class="flex items-center justify-center md:justify-start gap-3 mb-1">
+                    <h3 class="text-xl font-bold text-white">{{ session.round_type }} Round</h3>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest {% if session.status == 'Completed' %}bg-emerald-500/20 text-emerald-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                        {{ session.status }}
+                    </span>
+                </div>
+                <p class="text-zinc-500 text-xs uppercase tracking-widest">{{ session.created_at|date:"F d, Y • h:i A" }}</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="flex items-center gap-8 px-8 border-x border-white/5 hidden lg:flex">
+                <div class="text-center">
+                    <span class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Score</span>
+                    <span class="text-xl font-bold text-white">{{ session.score }}%</span>
+                </div>
+                <div class="text-center">
+                    <span class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Pace</span>
+                    <span class="text-xl font-bold text-white">{{ session.wpm }} <span class="text-[10px] text-zinc-500">WPM</span></span>
+                </div>
+                <div class="text-center">
+                    <span class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Confidence</span>
+                    <span class="text-xl font-bold text-white">{{ session.confidence_score }}%</span>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <a href="{% url 'mock_interview_result' session.id %}" class="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-widest hover:bg-[#ef233c] hover:border-[#ef233c] transition-all">
+                View Report
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card p-20 text-center animate-fade-up">
+        <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center text-4xl mx-auto mb-6 opacity-50">
+            📭
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">No interviews found</h2>
+        <p class="text-zinc-500 mb-8 max-w-sm mx-auto">You haven't completed any mock interviews yet. Start one now to build your archive.</p>
+        <a href="{% url 'mock_interview_list' %}" class="inline-flex px-8 py-4 rounded-full bg-[#ef233c] text-white font-bold transition-all shadow-lg shadow-red-600/20">
+            Start First Interview
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="mb-12 animate-fade-up">
+        <a href="{% url 'coding_test_history' %}" class="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 no-underline text-xs font-bold uppercase tracking-widest">
+            <iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to History
+        </a>
+        <h1 class="text-4xl font-bold font-manrope tracking-tight mb-4 text-white">{{ title }}</h1>
+        <p class="text-zinc-500">Update submission details, manage notes, or log manual coding tasks.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="glass-card p-8 md:p-12 animate-fade-up" style="animation-delay: 0.1s;">
+        <form method="POST" class="space-y-8">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="space-y-3">
+                <label for="{{ field.id_for_label }}" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-red-500 text-xs mt-2">
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="pt-6 flex items-center gap-4">
+                <button type="submit" class="shiny-cta py-4 px-10 no-underline flex-1">
+                    <span class="relative z-10 flex items-center justify-center gap-2 text-white font-bold text-sm uppercase tracking-widest">
+                        Update Record <iconify-icon icon="lucide:save"></iconify-icon>
+                    </span>
+                </button>
+                <a href="{% url 'coding_test_history' %}" class="px-8 py-4 rounded-xl border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-widest no-underline">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

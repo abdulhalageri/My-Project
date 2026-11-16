@@ -1,0 +1,146 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}My Profile | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Profile Hero -->
+    <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-zinc-900 to-black border border-white/10 p-12 mb-12 flex flex-col md:flex-row items-center gap-12 animate-fade-up">
+        <div class="relative shrink-0">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="{{ user.first_name }}" class="w-48 h-48 rounded-full border-4 border-white/10 object-cover shadow-2xl relative z-10">
+            {% else %}
+                <div class="w-48 h-48 rounded-full bg-zinc-800 border-4 border-white/10 flex items-center justify-center text-6xl shadow-2xl relative z-10">👤</div>
+            {% endif %}
+            <div class="absolute inset-0 bg-[#ef233c]/20 blur-3xl rounded-full scale-110 pointer-events-none"></div>
+        </div>
+
+        <div class="flex-1 text-center md:text-left relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-6">
+                Future Professional
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight mb-4 text-white">
+                {{ user.get_full_name|default:user.username }}
+            </h1>
+            <p class="text-zinc-400 text-lg mb-8 leading-relaxed max-w-2xl">
+                {{ user.bio|default:"Empowering my career journey with AI-driven insights and rigorous preparation." }}
+            </p>
+            <a href="{% url 'profile_edit' %}" class="px-8 py-3 rounded-full bg-white text-black font-bold hover:bg-[#ef233c] hover:text-white transition-all">
+                Edit Profile
+            </a>
+        </div>
+
+        <!-- Background Glow -->
+        <div class="absolute top-[-10%] right-[-10%] w-64 h-64 bg-red-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-up" style="animation-delay: 0.1s;">
+        <!-- Left: Academic & Personal -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="glass-card p-10">
+                <div class="flex items-center gap-4 mb-10">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-[#ef233c]">
+                        <iconify-icon icon="lucide:user" class="text-xl"></iconify-icon>
+                    </div>
+                    <h3 class="text-xl font-bold font-manrope uppercase tracking-widest text-zinc-300">Credentials</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Full Name</p>
+                        <p class="text-white font-medium">{{ user.get_full_name|default:"Not set" }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Email Address</p>
+                        <p class="text-white font-medium">{{ user.email }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Phone Number</p>
+                        <p class="text-white font-medium">{{ user.phone|default:"Not set" }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Department</p>
+                        <p class="text-white font-medium">{{ user.department|default:"Not set" }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Year of Passing</p>
+                        <p class="text-white font-medium">{{ user.year_of_passing|default:"Not set" }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Current CGPA</p>
+                        <p class="text-white font-medium">{{ user.cgpa|default:"Not set" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-10">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <iconify-icon icon="lucide:zap" class="text-xl"></iconify-icon>
+                    </div>
+                    <h3 class="text-xl font-bold font-manrope uppercase tracking-widest text-zinc-300">Skills & Expertise</h3>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    {% if user.skills %}
+                        {% for skill in user.skills.split %}
+                            <span class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-300 text-sm hover:border-[#ef233c] hover:text-[#ef233c] transition-all cursor-default">
+                                {{ skill|cut:"," }}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-zinc-500 italic text-sm">No skills listed yet. Add some to get better AI recommendations.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Social & Resume -->
+        <div class="space-y-8">
+            <div class="glass-card p-10">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                        <iconify-icon icon="lucide:link" class="text-xl"></iconify-icon>
+                    </div>
+                    <h3 class="text-xl font-bold font-manrope uppercase tracking-widest text-zinc-300">Ecosystem</h3>
+                </div>
+
+                <div class="space-y-4">
+                    {% if user.linkedin_url %}
+                        <a href="{{ user.linkedin_url }}" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group no-underline">
+                            <iconify-icon icon="logos:linkedin-icon" class="text-2xl"></iconify-icon>
+                            <span class="text-zinc-400 group-hover:text-white transition-colors">LinkedIn Profile</span>
+                        </a>
+                    {% endif %}
+                    {% if user.github_url %}
+                        <a href="{{ user.github_url }}" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-white/50 hover:bg-white/5 transition-all group no-underline">
+                            <iconify-icon icon="logos:github-icon" class="text-2xl invert"></iconify-icon>
+                            <span class="text-zinc-400 group-hover:text-white transition-colors">GitHub Profile</span>
+                        </a>
+                    {% endif %}
+                    {% if not user.linkedin_url and not user.github_url %}
+                        <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl">
+                            <p class="text-zinc-600 text-xs">No professional links added</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="glass-card p-10 overflow-hidden relative">
+                <div class="relative z-10 text-center">
+                    <iconify-icon icon="lucide:file-text" class="text-5xl text-[#ef233c] mb-6"></iconify-icon>
+                    <h3 class="text-xl font-bold font-manrope mb-2">Resume AI</h3>
+                    <p class="text-zinc-500 text-sm mb-8 leading-relaxed">Ensure your resume is optimized for top-tier ATS filters.</p>
+                    <a href="{% url 'resume_upload' %}" class="block w-full py-3 rounded-xl bg-[#ef233c] text-white font-bold text-sm hover:bg-red-700 transition-all no-underline">
+                        Manage Resumes
+                    </a>
+                </div>
+                <!-- Background decoration -->
+                <div class="absolute bottom-[-20%] right-[-20%] w-32 h-32 bg-red-600/10 rounded-full blur-[40px] pointer-events-none"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

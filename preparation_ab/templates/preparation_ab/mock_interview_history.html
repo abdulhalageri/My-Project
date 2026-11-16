@@ -1,0 +1,169 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Interview Archive | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="mb-12 animate-fade-up">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-6">
+                    Session History
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight mb-4">Interview Archive</h1>
+                <p class="text-zinc-500">Review your performance, watch recordings, and check AI feedback from your previous sessions.</p>
+            </div>
+            <a href="{% url 'create_mock_interview' %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all no-underline">
+                <iconify-icon icon="lucide:plus-circle" class="text-red-500"></iconify-icon>
+                <span>Add Manual Entry</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="glass-card overflow-hidden animate-fade-up" style="animation-delay: 0.1s;">
+        {% if sessions %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white/5">
+                        <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/10">Session Details</th>
+                        <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/10">Status</th>
+                        <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/10">Score</th>
+                        <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/10">Metrics</th>
+                        <th class="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/10 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for session in sessions %}
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-xl">
+                                    {% if session.round_type == 'HR' %}🤝{% else %}💻{% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-white">{{ session.title|default:session.round_type }}</p>
+                                    <div class="flex items-center gap-3">
+                                        <p class="text-[10px] text-zinc-500 uppercase tracking-widest">{{ session.round_type }} Round • {{ session.created_at|date:"M d, Y" }}</p>
+                                        {% if session.recording %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-tighter">
+                                            <iconify-icon icon="lucide:video" class="text-[10px]"></iconify-icon> Recording
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            {% if session.status == 'Completed' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Completed
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Interrupted
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-xl font-bold text-white">{{ session.score }}</span>
+                                <span class="text-xs text-zinc-600">/100</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col gap-1 text-[11px] text-zinc-400">
+                                <span class="flex items-center gap-1.5"><iconify-icon icon="lucide:zap" class="text-yellow-500"></iconify-icon> {{ session.wpm }} WPM</span>
+                                <span class="flex items-center gap-1.5"><iconify-icon icon="lucide:message-square-dashed" class="text-[#ef233c]"></iconify-icon> {{ session.filler_count }} Fillers</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <!-- View Results -->
+                                <a href="{% url 'mock_interview_result' session.id %}" 
+                                   class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-[#ef233c] hover:border-[#ef233c] transition-all no-underline relative z-10"
+                                   title="View Results">
+                                    <iconify-icon icon="lucide:eye" class="text-lg pointer-events-none"></iconify-icon>
+                                </a>
+
+                                <!-- Edit Session -->
+                                <a href="{% url 'update_mock_interview' session.id %}" 
+                                   class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-blue-500/20 hover:border-blue-500/40 transition-all no-underline relative z-10"
+                                   title="Edit Session">
+                                    <iconify-icon icon="lucide:edit-3" class="text-lg pointer-events-none"></iconify-icon>
+                                </a>
+
+                                <!-- Delete Session -->
+                                <form action="{% url 'delete_mock_interview' session.id %}" method="POST" class="delete-form inline-block m-0 relative z-10">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer flex items-center justify-center">
+                                        <iconify-icon icon="lucide:trash-2" class="text-lg pointer-events-none"></iconify-icon>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="py-32 flex flex-col items-center justify-center text-center px-6">
+            <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center text-4xl mb-8 grayscale opacity-50">🎥</div>
+            <h3 class="text-2xl font-bold font-manrope mb-4">No recordings found</h3>
+            <p class="text-zinc-500 max-w-sm mb-10">Start your first mock interview to see how our AI evaluates your performance and communication skills.</p>
+            <a href="{% url 'mock_interview_list' %}" class="shiny-cta py-4 px-10 no-underline">
+                <span class="relative z-10 flex items-center gap-2 text-white font-bold text-sm uppercase tracking-widest">
+                    Start Interview <iconify-icon icon="lucide:play"></iconify-icon>
+                </span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!confirm('Are you sure you want to permanently delete this record?')) return;
+        
+        const row = form.closest('tr');
+        const url = form.getAttribute('action');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // Smooth remove
+                row.style.transition = 'all 0.5s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => row.remove(), 500);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            alert('Failed to delete the record. Please try again.');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,686 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}{{ round_type }} Session | PlacementHub AI{% endblock %}
+
+{% block extra_head %}
+<!-- YOLOv8 SERVER PROCTORING -->
+<style>
+    /* Full-screen experience adjustments */
+    header,
+    footer {
+        display: none !important;
+    }
+
+    body {
+        overflow: hidden;
+    }
+    .hidden-force {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-screen flex flex-row gap-6 p-6">
+    <!-- Main Interview Area (Left) -->
+    <div class="flex-1 flex flex-col gap-6">
+        <!-- Top Stats HUD -->
+        <div class="grid grid-cols-3 gap-4 animate-fade-up">
+            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Pace</span>
+                <span class="text-2xl font-bold text-white" id="paceVal">0 WPM</span>
+            </div>
+            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Confidence</span>
+                <span class="text-2xl font-bold text-white" id="confVal">0%</span>
+            </div>
+            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Fillers</span>
+                <span class="text-2xl font-bold text-white" id="fillerVal">0</span>
+            </div>
+        </div>
+
+        <!-- Question Display Area -->
+        <div class="flex-1 glass-card p-12 flex flex-col justify-center relative overflow-hidden group">
+            <div class="absolute top-0 left-0 w-1 h-full bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.5)]"></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center gap-4 mb-10">
+                    <div
+                        class="px-4 py-1.5 rounded-full bg-red-600/10 border border-red-600/20 text-red-600 text-[10px] font-bold uppercase tracking-widest">
+                        Round: {{ round_type }}
+                    </div>
+                    <div class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+                        Question <span id="currentQNum">1</span> of {{ question_count }}
+                    </div>
+                </div>
+
+                <h2 class="text-4xl md:text-5xl font-bold font-manrope leading-tight text-white mb-12 min-h-[150px]"
+                    id="questionText">
+                    Preparing your session...
+                </h2>
+
+                <div class="flex items-center gap-6">
+                    <button
+                        class="px-10 py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center gap-3 group"
+                        id="nextBtn" disabled onclick="currentIdx++; updateQuestion();">
+                        <span class="group-hover:translate-x-1 transition-transform" id="nextBtnText">Next Question
+                            ➔</span>
+                    </button>
+
+                    <div class="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10"
+                        id="voiceStatus">
+                        <iconify-icon icon="lucide:mic" class="text-lg text-blue-500 animate-pulse"></iconify-icon>
+                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">AI Voice
+                            Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Camera & Proctoring (Right) -->
+    <div class="w-[300px] md:w-[350px] lg:w-[450px] flex flex-col gap-6 shrink-0">
+        <!-- Live Feed Container -->
+        <div class="glass-card aspect-video border-white/10 relative overflow-hidden shadow-2xl bg-black">
+            <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
+
+            <!-- Proxy Alert / Objects Detection Overlay -->
+            <div id="proxyAlert"
+                class="absolute inset-0 bg-red-600/90 backdrop-blur-md hidden flex-col items-center justify-center p-8 text-center z-50 animate-pulse">
+                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-6">
+                    <iconify-icon icon="lucide:user-x" class="text-5xl text-white"></iconify-icon>
+                </div>
+                <h2 class="text-3xl font-black text-white uppercase tracking-tighter mb-2">SECURITY ALERT</h2>
+                <p id="proxyMsg" class="text-white font-bold text-sm">Multiple persons detected!</p>
+                <div class="mt-6 px-4 py-2 bg-white text-red-600 text-[10px] font-black uppercase rounded-lg">Violation
+                    Logged</div>
+            </div>
+
+            <!-- Monitoring Badges -->
+            <div class="absolute top-4 left-4 flex flex-col gap-2">
+                <div id="detectionIndicator"
+                    class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="text-[10px] text-white font-bold tracking-tighter uppercase">AI Proctoring
+                        Active</span>
+                </div>
+            </div>
+
+            <!-- Recording Badge -->
+            <div
+                class="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/80 border border-red-500/50 backdrop-blur-md">
+                <iconify-icon icon="lucide:video" class="text-white text-xs"></iconify-icon>
+                <span class="text-[10px] text-white font-bold uppercase tracking-widest">Recording</span>
+            </div>
+        </div>
+
+        <!-- Progress List -->
+        <div class="glass-card flex-1 p-8 overflow-hidden flex flex-col border-white/5">
+            <h4 class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-6">Interview Progress</h4>
+            <div class="flex-1 overflow-y-auto pr-4 custom-scrollbar" id="progressList">
+                {% for q in questions %}
+                <div class="flex items-center gap-4 mb-6 transition-all duration-500 opacity-20 text-zinc-600"
+                    id="p-{{ forloop.counter0 }}">
+                    <div class="w-2 h-2 rounded-full bg-zinc-800 flex-shrink-0 transition-all"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest">Question {{ forloop.counter }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Warning Counter -->
+            <div class="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+                <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Security Warnings</span>
+                <span class="text-sm font-bold text-red-500" id="warnCount">0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Canvas for Proctoring -->
+<canvas id="captureCanvas" class="hidden"></canvas>{{ questions_json|json_script:"questions-data" }}
+
+<!-- Start Confirmation Overlay -->
+<div class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6" id="startOverlay">
+    <div class="glass-card max-w-md w-full p-12 text-center border-white/5 animate-fade-up">
+        <div class="w-20 h-20 rounded-3xl bg-red-600/10 flex items-center justify-center text-4xl mx-auto mb-8">
+            🛡️
+        </div>
+        <h2 class="text-3xl font-bold font-manrope text-white mb-4">Get ready for success!</h2>
+        <p class="text-zinc-500 text-sm leading-relaxed mb-6">
+            Please ensure you are in a quiet room and your camera/microphone are allowed. High-fidelity proctoring is
+            active.
+        </p>
+
+        <!-- Preview Feed inside Overlay -->
+        <div class="mb-8 aspect-video rounded-2xl bg-black/40 border border-white/10 overflow-hidden relative group">
+            <video id="overlayPreview" autoplay playsinline muted
+                class="w-full h-full object-cover scale-x-[-1]"></video>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="previewPlaceholder">
+                <iconify-icon icon="lucide:camera" class="text-3xl text-zinc-700"></iconify-icon>
+            </div>
+        </div>
+        <div id="cameraStatus"
+            class="mb-4 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            System: Ready to Initialize
+        </div>
+        <button class="shiny-cta w-full py-5 mb-4 group" id="startBtn" onclick="startInterview()">
+            <span class="relative z-10 text-white font-bold text-sm tracking-widest uppercase" id="startBtnText">Start
+                Interview ➔</span>
+        </button>
+        <button
+            class="w-full py-3 text-zinc-600 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
+            onclick="window.location.href='{% url 'mock_interview_list' %}'">
+            Go Back
+        </button>
+    </div>
+</div>
+
+<!-- Warning Overlay -->
+<div class="fixed inset-0 z-[4000] bg-black/90 backdrop-blur-md hidden items-center justify-center p-6 text-center"
+    id="warningOverlay">
+    <div class="glass-card max-w-sm p-10 border-red-500/50 bg-red-950/20">
+        <div
+            class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-3xl mx-auto mb-6 text-red-500">
+            <iconify-icon icon="lucide:alert-triangle"></iconify-icon>
+        </div>
+        <h3 class="text-2xl font-bold font-manrope text-white mb-4">Security Alert</h3>
+        <p class="text-zinc-400 text-sm mb-8 leading-relaxed" id="warningMsg">
+            Please do not switch tabs or leave the browser window. Doing so will count as an interruption.
+        </p>
+        <button
+            class="w-full py-4 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all"
+            onclick="acknowledgeWarning()">
+            I Understand
+        </button>
+    </div>
+</div>
+
+<script>
+    const questions = JSON.parse(document.getElementById('questions-data').textContent);
+    const roundType = "{{ round_type }}";
+    const processUrl = "{% url 'process_mock_interview' %}";
+    const resultBaseUrl = "{% url 'mock_interview_result' 0 %}".replace('0/', '');
+    const videoUploadUrl = "{% url 'upload_interview_video' %}";
+
+    let currentIdx = 0;
+    let warnings = 0;
+    let isWarningSubmitting = false;
+    let fullTranscript = "";
+    let fillerCount = 0;
+
+    // Globals added to fix JS errors
+    const synth = window.speechSynthesis;
+    let preferredVoice = null;
+    let recognition = null;
+    let totalWords = 0;
+    let currentQuestionWords = 0;
+    let currentQuestionStartTime = 0;
+    let isModelReady = false;
+    const fillers = ['um', 'uh', 'ah', 'like', 'basically', 'actually', 'literally', 'well', 'so', 'you know'];
+
+    // Warning DOM Elements
+    const warnDisplay = document.getElementById('warnCount');
+    const warnMsg = document.getElementById('warningMsg');
+    const warningOverlay = document.getElementById('warningOverlay');
+
+    const video = document.getElementById('videoElement');
+    const qText = document.getElementById('questionText');
+    const qNum = document.getElementById('currentQNum');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isCameraReady = false;
+    let activeStream = null;
+
+    const camStatus = document.getElementById('cameraStatus');
+    const startBtnText = document.getElementById('startBtnText');
+
+    async function initCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            camStatus.innerText = "Error: Insecure Context or Browser Incompatible";
+            camStatus.className = "mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-[10px] font-bold text-red-500";
+            alert("Security Error: Camera access requires HTTPS or localhost.");
+            return false;
+        }
+
+        camStatus.innerText = "Requesting Camera Access...";
+        try {
+            let stream = activeStream;
+            if (!stream) {
+                const constraints = {
+                    video: { width: 1280, height: 720 },
+                    audio: true
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                activeStream = stream;
+            }
+            video.srcObject = stream;
+
+            return new Promise((resolve) => {
+                const onMetadataLoaded = async () => {
+                    try {
+                        await video.play();
+                        isCameraReady = true;
+
+                        let mime = 'video/webm;codecs=vp9,opus';
+                        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8,opus';
+                        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+
+                        mediaRecorder = new MediaRecorder(stream, {
+                            mimeType: mime,
+                            videoBitsPerSecond: 1000000 // Reduced to 1Mbps for better compatibility
+                        });
+                        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                        mediaRecorder.start(1000);
+
+                        camStatus.innerText = "Camera & Mic Active";
+                        camStatus.className = "mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-[10px] font-bold text-green-500";
+
+                        startSecurityScanning();
+                        resolve(true);
+                    } catch (playErr) {
+                        camStatus.innerText = "Error: Video Playback Blocked";
+                        resolve(false);
+                    }
+                };
+
+                if (video.readyState >= 1) {
+                    onMetadataLoaded();
+                } else {
+                    video.onloadedmetadata = onMetadataLoaded;
+                }
+            });
+        } catch (err) {
+            camStatus.innerText = "Error: " + err.message;
+            camStatus.className = "mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-[10px] font-bold text-red-500";
+            return false;
+        }
+    }
+
+    window.onload = () => {
+        loadSecurityModel();
+        initVoice(); // Initialize voice list early so it has time to populate asynchronously
+        
+        // Pre-warm SpeechSynthesis engine to prevent cold-start delay
+        if (window.speechSynthesis) {
+            try {
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+            } catch(e) {}
+        }
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                activeStream = stream;
+                const overlayPrev = document.getElementById('overlayPreview');
+                if (overlayPrev) overlayPrev.srcObject = stream;
+            }).catch(() => { });
+    };
+
+    // Pre-warm voice synthesis on first click to satisfy browser activation policy
+    document.addEventListener('click', () => {
+        if (window.speechSynthesis && !window.speechSynthesis.speaking) {
+            try {
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+            } catch(e) {}
+        }
+    }, { once: true });
+
+    function checkReadyState() { }
+
+    const proxyAlert = document.getElementById('proxyAlert');
+    const proxyMsg = document.getElementById('proxyMsg');
+
+    async function startSecurityScanning() {
+        const canvas = document.getElementById('captureCanvas');
+        const ctx = canvas.getContext('2d');
+
+        setInterval(async () => {
+            if (!proctoringEnabled || isWarningSubmitting) return;
+
+            canvas.width = 320; // Lower res for AI processing speed
+            canvas.height = 240;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg', 0.5);
+
+            try {
+                const response = await fetch("{% url 'proctor_frame' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                const res = await response.json();
+
+                if (res.status === 'success') {
+                    document.getElementById('detectionIndicator').classList.remove('hidden');
+                    if (!res.secure && res.violations.length > 0) {
+                        showProxyAlert(res.violations[0]);
+                        triggerWarning(res.violations[0]);
+                    } else {
+                        hideProxyAlert();
+                    }
+                }
+            } catch (err) { }
+        }, 2000);
+    }
+
+    function showProxyAlert(msg) {
+        proxyMsg.innerText = msg;
+        proxyAlert.classList.remove('hidden');
+        proxyAlert.classList.add('flex');
+    }
+
+    function hideProxyAlert() {
+        proxyAlert.classList.add('hidden');
+        proxyAlert.classList.remove('flex');
+    }
+
+    let proctoringEnabled = false;
+
+    async function loadSecurityModel() {
+        // Now using server-side YOLOv8, so we just check readiness
+        console.log("Using Server-side YOLOv8 proctoring.");
+        const startBtnText = document.getElementById('startBtnText');
+        isModelReady = true;
+        checkReadyState();
+
+        nextBtn.disabled = false;
+        document.getElementById('nextBtnText').innerText = "Next Question ➔";
+    }
+
+    function updateQuestion() {
+        if (warnings > 0 || !proxyAlert.classList.contains('hidden') || (warningOverlay && !warningOverlay.classList.contains('hidden'))) {
+            finalizeInterview('Failed');
+            return;
+        }
+        if (currentIdx < questions.length) {
+            qText.innerText = questions[currentIdx].text;
+            qNum.innerText = currentIdx + 1;
+
+            document.querySelectorAll('#progressList > div').forEach((el, idx) => {
+                el.className = `flex items-center gap-4 transition-all duration-300 ${idx === currentIdx ? 'text-white font-bold opacity-100' : idx < currentIdx ? 'text-green-500 opacity-60' : 'text-zinc-600 opacity-50'}`;
+                el.querySelector('.w-2').className = `w-2 h-2 rounded-full ${idx === currentIdx ? 'bg-[#ef233c] shadow-[0_0_10px_#ef233c]' : idx < currentIdx ? 'bg-green-500' : 'bg-zinc-800'} flex-shrink-0 transition-all`;
+            });
+
+            if (currentIdx === questions.length - 1) nextBtn.querySelector('span').innerText = "Finish Interview 🏁";
+            speak(questions[currentIdx].text);
+            currentQuestionWords = 0;
+            currentQuestionStartTime = Date.now();
+        } else {
+            finalizeInterview('Completed');
+        }
+    }
+
+    // nextBtn event listener removed because it is handled by the inline onclick in HTML
+    window.addEventListener('blur', () => triggerWarning("Tab switch / focus loss detected."));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) triggerWarning("Tab switch / focus loss detected."); });
+
+    function triggerWarning(msg) {
+        if (!proctoringEnabled || isWarningSubmitting) return;
+        warnings++;
+        if (warnDisplay) warnDisplay.innerText = warnings;
+        if (msg && warnMsg) warnMsg.innerText = msg;
+        
+        // Immediately terminate/fail interview to prevent going to second question
+        finalizeInterview('Failed');
+    }
+
+    function acknowledgeWarning() {
+        if (warningOverlay) {
+            warningOverlay.classList.add('hidden');
+            warningOverlay.classList.remove('flex');
+        }
+    }
+
+    async function finalizeInterview(status) {
+        if (isWarningSubmitting && status !== 'Failed') return;
+        isWarningSubmitting = true;
+        nextBtn.disabled = true;
+        nextBtn.querySelector('span').innerText = "Uploading Session...";
+
+        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+
+        const payload = {
+            round_type: roundType, status: status, warnings: warnings,
+            transcript: fullTranscript,
+            metrics: {
+                filler_count: fillerCount,
+                wpm: document.getElementById('paceVal') ? parseInt(document.getElementById('paceVal').innerText) || 0 : 0,
+                confidence: document.getElementById('confVal') ? parseInt(document.getElementById('confVal').innerText) || 70 : 70
+            }
+        };
+
+        try {
+            const response = await fetch(processUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                if (recordedChunks.length > 0) {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const formData = new FormData();
+                    formData.append('video', blob, 'interview.webm');
+                    formData.append('session_id', res.session_id);
+                    await fetch(videoUploadUrl, { method: 'POST', body: formData });
+                }
+                window.location.href = resultBaseUrl + res.session_id + '/';
+            } else {
+                window.location.href = "{% url 'dashboard' %}";
+            }
+        } catch (err) { window.location.href = "{% url 'dashboard' %}"; }
+    }
+
+async function startInterview() {
+
+    console.log("Interview Started");
+
+    const overlay = document.getElementById('startOverlay');
+
+    // Start camera first
+    const cameraStarted = await initCamera();
+
+    console.log("Camera:", cameraStarted);
+
+    // Remove overlay completely
+    overlay.classList.add('hidden');
+
+    overlay.classList.remove(
+        'flex',
+        'items-center',
+        'justify-center'
+    );
+
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+
+    // Start systems
+    initVoice();
+    initRecognition();
+
+    // Start first question
+    currentIdx = 0;
+    updateQuestion();
+
+    // Enable proctoring after 5 sec
+    setTimeout(() => {
+        proctoringEnabled = true;
+        console.log("Proctoring Enabled");
+    }, 5000);
+}
+    function initVoice() {
+        function setVoiceList() {
+            if (!synth) return;
+            let voices = synth.getVoices();
+            if (voices.length === 0) return;
+            
+            // Filter out Hindi/non-English voices completely from preferred selection to avoid Aarti issues
+            const englishVoices = voices.filter(v => v.lang.startsWith('en') && !v.lang.startsWith('hi') && !v.name.toLowerCase().includes('aarti') && !v.name.toLowerCase().includes('heera'));
+            
+            preferredVoice = englishVoices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('female'))
+                || englishVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+                || englishVoices.find(v => v.lang === 'en-IN')
+                || englishVoices.find(v => v.lang.startsWith('en'))
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0];
+                
+            const indicator = document.getElementById('voiceIndicator') || document.getElementById('voiceStatus');
+            if (preferredVoice && indicator) {
+                indicator.innerHTML = `<div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><iconify-icon icon="lucide:volume-2" class="text-blue-400"></iconify-icon> AI Voice: ${preferredVoice.name}</div>`;
+            }
+        }
+        setVoiceList();
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = setVoiceList;
+    }
+
+    function speak(text) {
+        if (!synth) return;
+        
+        const needCancel = synth.speaking;
+        if (needCancel) {
+            synth.cancel();
+        }
+
+        // Delay queueing to allow cancel to complete
+        const delay = needCancel ? 300 : 50;
+
+        setTimeout(() => {
+            try {
+                const utter = new SpeechSynthesisUtterance(text);
+                
+                // Explicitly set language to English (India) to prevent default falling back to Hindi/Aarti
+                utter.lang = preferredVoice ? preferredVoice.lang : 'en-IN';
+                
+                if (preferredVoice) {
+                    utter.voice = preferredVoice;
+                }
+
+                utter.pitch = 1.0;
+                utter.rate = 1.0; // Keep at 1.0 to avoid compatibility issues with Online/Natural voices
+                utter.volume = 1.0;
+
+                utter.onstart = () => {
+                    console.log("Speech started successfully for text:", text.substring(0, 30) + "...");
+                };
+
+                utter.onend = () => {
+                    console.log("Speech completed successfully.");
+                };
+
+                utter.onerror = (e) => {
+                    console.error("SpeechSynthesisUtterance error:", e.error, e);
+                    
+                    // Fallback to local offline English voice if the online voice failed
+                    if (preferredVoice && (preferredVoice.name.toLowerCase().includes('online') || preferredVoice.name.toLowerCase().includes('natural'))) {
+                        console.warn("Online voice failed. Falling back to local offline English voice...");
+                        let voices = synth.getVoices();
+                        let localVoice = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('online') && !v.name.toLowerCase().includes('natural'));
+                        if (localVoice) {
+                            preferredVoice = localVoice;
+                            const indicator = document.getElementById('voiceIndicator') || document.getElementById('voiceStatus');
+                            if (indicator) {
+                                indicator.innerHTML = `<div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><iconify-icon icon="lucide:volume-2" class="text-blue-400"></iconify-icon> Fallback Voice: ${preferredVoice.name}</div>`;
+                            }
+                            // Retry speak after a short delay
+                            setTimeout(() => {
+                                speak(text);
+                            }, 300);
+                            return;
+                        }
+                    }
+                    synth.resume();
+                };
+
+                console.log("SpeechSynthesis attempting to speak with voice:", preferredVoice ? preferredVoice.name : "default en-IN");
+                synth.speak(utter);
+            } catch (err) {
+                console.error("Error in speech synthesis speak trigger:", err);
+            }
+        }, delay);
+    }
+
+    function initRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN';
+        recognition.onresult = (event) => {
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    const text = event.results[i][0].transcript.toLowerCase();
+                    fullTranscript += text + " ";
+                    processLiveText(text);
+                }
+            }
+        };
+        recognition.onend = () => {
+            if (!isWarningSubmitting) {
+                setTimeout(() => {
+                    try {
+                        if (recognition) recognition.start();
+                    } catch (e) {
+                        console.log("Speech recognition restart skipped:", e);
+                    }
+                }, 400); // 400ms delay helps prevent InvalidStateError
+            }
+        };
+        try {
+            recognition.start();
+        } catch (e) {
+            console.log("Speech recognition initial start skipped:", e);
+        }
+    }
+
+    function processLiveText(text) {
+        const words = text.split(/\s+/).filter(w => w.length > 0);
+        totalWords += words.length;
+        currentQuestionWords += words.length;
+        let detectedNewFiller = false;
+        words.forEach(w => { if (fillers.includes(w.toLowerCase())) { fillerCount++; detectedNewFiller = true; } });
+
+        const fillerValEl = document.getElementById('fillerVal');
+        if (detectedNewFiller && fillerValEl && fillerValEl.parentElement) {
+            const card = fillerValEl.parentElement;
+            card.classList.remove('animate-shake');
+            void card.offsetWidth;
+            card.classList.add('animate-shake');
+        }
+        const currentElapsedMins = (Date.now() - currentQuestionStartTime) / 60000;
+        const wpm = Math.round(currentQuestionWords / Math.max(0.1, currentElapsedMins));
+
+        const paceValEl = document.getElementById('paceVal');
+        if (paceValEl) paceValEl.innerText = `${wpm} WPM`;
+
+        if (fillerValEl) fillerValEl.innerText = fillerCount;
+
+        const paceMeter = document.getElementById('paceMeter');
+        if (paceMeter) paceMeter.style.width = `${Math.min(100, (wpm / 200) * 100)}%`;
+
+        const paceHint = document.getElementById('paceHint');
+        if (paceHint) {
+            if (wpm < 100) paceHint.innerText = "Speak a bit faster";
+            else if (wpm > 160) paceHint.innerText = "Slow down slightly";
+            else paceHint.innerText = "Perfect pace";
+        }
+
+        let confidence = 100 - (fillerCount * 4) - (warnings * 10);
+        confidence = Math.max(10, Math.min(100, confidence));
+
+        const confValEl = document.getElementById('confVal');
+        if (confValEl) confValEl.innerText = `${confidence}%`;
+
+        const confMeter = document.getElementById('confMeter');
+        if (confMeter) confMeter.style.width = `${confidence}%`;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Assessment Results | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center">
+    <!-- Achievement Header -->
+    <div class="text-center mb-12 animate-fade-up">
+        <div class="inline-flex p-4 rounded-full bg-red-500/10 border border-red-500/20 text-[#ef233c] mb-6">
+            <iconify-icon icon="{% if attempt.score|divisibleby:2 %}lucide:award{% else %}lucide:zap{% endif %}" class="text-4xl"></iconify-icon>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight mb-4">Performance Report</h1>
+        <p class="text-zinc-400">Assessment: <span class="text-white font-medium">{{ attempt.category.name }}</span></p>
+    </div>
+
+    <!-- Result Card -->
+    <div class="glass-card w-full max-w-2xl overflow-hidden animate-fade-up" style="animation-delay: 0.1s;">
+        <div class="h-1.5 w-full bg-gradient-to-r from-red-600 via-[#ef233c] to-red-900"></div>
+        <div class="p-12 flex flex-col items-center text-center">
+            
+            <!-- Score Display -->
+            <div class="relative w-48 h-48 flex flex-col items-center justify-center mb-10">
+                <div class="absolute inset-0 rounded-full border-4 border-white/5"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-[#ef233c] border-t-transparent animate-[spin_3s_linear_infinite]"></div>
+                <div class="relative">
+                    <span class="text-6xl font-bold font-manrope text-white">{{ attempt.score }}</span>
+                    <span class="text-zinc-500 font-medium">/{{ attempt.total_questions }}</span>
+                </div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-[#ef233c] mt-2">Final Score</p>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 w-full mb-10 text-left">
+                <div class="flex items-center gap-3 mb-4">
+                    <iconify-icon icon="lucide:message-square" class="text-[#ef233c] text-xl"></iconify-icon>
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">AI Feedback</span>
+                </div>
+                <p class="text-zinc-400 leading-relaxed italic">
+                    {% if attempt.score == attempt.total_questions %}
+                        "Exceptional Proficiency! You've mastered this topic. This level of accuracy will distinguish you in high-stakes recruitment rounds."
+                    {% elif attempt.score >= attempt.total_questions|add:"-2" %}
+                        "Strong Foundations! You've clearly grasped the core principles. A brief review of the skipped areas will ensure you're fully prepared."
+                    {% else %}
+                        "Solid Practice! Every attempt brings you closer to mastery. Focus on more drills in this category to sharpen your analytical speed."
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <a href="{% url 'recommendations' %}" class="shiny-cta flex items-center justify-center gap-2 group">
+                    <span class="relative z-10 flex items-center gap-2 text-white font-bold text-sm">
+                        View Career AI <iconify-icon icon="lucide:sparkles"></iconify-icon>
+                    </span>
+                </a>
+                <a href="{% url 'dashboard' %}" class="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold hover:text-white hover:bg-zinc-800 transition-all text-sm">
+                    Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

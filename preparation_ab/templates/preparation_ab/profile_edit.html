@@ -1,0 +1,174 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="mb-12 animate-fade-up">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-6">
+            Profile Settings
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight mb-4 text-white">Professional Identity</h1>
+        <p class="text-zinc-500">Update your credentials and professional biography to ensure AI-driven accuracy across the platform.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="glass-card p-10 animate-fade-up" style="animation-delay: 0.1s;">
+        <form method="POST" enctype="multipart/form-data" class="space-y-10">
+            {% csrf_token %}
+            
+            <!-- Personal Section -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-[#ef233c] text-xs font-bold">1</div>
+                    <h3 class="text-xl font-bold font-manrope text-white">Basic Information</h3>
+                    <div class="h-px flex-1 bg-zinc-800"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            {% for error in form.first_name.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            {% for error in form.last_name.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Email Address</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            {% for error in form.email.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Phone Number</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            {% for error in form.phone.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Section -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs font-bold">2</div>
+                    <h3 class="text-xl font-bold font-manrope text-white">Academic Details</h3>
+                    <div class="h-px flex-1 bg-zinc-800"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Department</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                            {% for error in form.department.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Year of Passing</label>
+                        {{ form.year_of_passing }}
+                        {% if form.year_of_passing.errors %}
+                            {% for error in form.year_of_passing.errors %}<p class="text-xs text-red-500 mt-1 font-medium">{{ error }}</p>{% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Current CGPA</label>
+                    {{ form.cgpa }}
+                </div>
+            </div>
+
+            <!-- Professional Section -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 text-xs font-bold">3</div>
+                    <h3 class="text-xl font-bold font-manrope text-white">Professional Brief</h3>
+                    <div class="h-px flex-1 bg-zinc-800"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">About You / Portfolio Bio</label>
+                    {{ form.bio }}
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Skills (Comma separated tags)</label>
+                    {{ form.skills }}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">LinkedIn URL</label>
+                        {{ form.linkedin_url }}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">GitHub URL</label>
+                        {{ form.github_url }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar -->
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 text-xs font-bold">4</div>
+                    <h3 class="text-xl font-bold font-manrope text-white">Profile Visuals</h3>
+                    <div class="h-px flex-1 bg-zinc-800"></div>
+                </div>
+                <div class="p-8 border-2 border-dashed border-white/10 rounded-3xl bg-white/[0.02] flex flex-col items-center">
+                    <iconify-icon icon="lucide:image-plus" class="text-4xl text-zinc-700 mb-4"></iconify-icon>
+                    {{ form.profile_picture }}
+                    <p class="text-[10px] text-zinc-500 mt-4">Square JPG or PNG, max 1MB recommended.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col md:flex-row items-center gap-4 pt-12 border-t border-white/5">
+                <button type="submit" class="shiny-cta px-12 py-4 group">
+                    <span class="relative z-10 flex items-center gap-2 text-white font-bold text-sm tracking-widest uppercase">
+                        Save Changes <iconify-icon icon="lucide:save" class="text-lg"></iconify-icon>
+                    </span>
+                </button>
+                <a href="{% url 'profile' %}" class="px-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-zinc-500 text-xs font-bold uppercase tracking-widest hover:text-white hover:bg-white/10 transition-all no-underline">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    /* Styling for Django auto-generated inputs */
+    .form-input {
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem 1rem !important;
+        color: white !important;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+    .form-input:focus {
+        outline: none !important;
+        border-color: #ef233c !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 0 0 2px rgba(239, 35, 60, 0.2) !important;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+</style>
+{% endblock %}

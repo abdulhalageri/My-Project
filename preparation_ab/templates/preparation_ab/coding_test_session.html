@@ -1,0 +1,328 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}{{ problem.title }} | Coding Test{% endblock %}
+
+{% block extra_head %}
+<!-- CodeMirror CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/ruby/ruby.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+<style>
+    .CodeMirror {
+        height: 100% !important;
+        font-size: 14px;
+        border-radius: 0 0 1rem 1rem;
+        background: #1e1e2e !important;
+    }
+    .CodeMirror-gutters { background: #1a1a2e !important; border: none !important; }
+
+    /* Custom Language Dropdown */
+    .lang-dropdown-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.2s, background 0.2s;
+        min-width: 120px;
+    }
+    .lang-dropdown-btn:hover { background: rgba(255,255,255,0.08); border-color: #ef233c; }
+    .lang-dropdown-btn .chevron { margin-left: auto; transition: transform 0.2s; }
+    .lang-dropdown-btn.open .chevron { transform: rotate(180deg); }
+
+    /* Portal Menu — rendered on <body> to escape all overflow:hidden parents */
+    #langPortalMenu {
+        position: fixed;
+        min-width: 170px;
+        background: #15151f;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        z-index: 999999;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.85);
+        display: none;
+        animation: menuIn 0.15s ease;
+    }
+    #langPortalMenu.open { display: block; }
+    @keyframes menuIn {
+        from { opacity:0; transform: translateY(-6px) scale(0.97); }
+        to   { opacity:1; transform: translateY(0)   scale(1); }
+    }
+    .lang-portal-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #a1a1aa;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .lang-portal-item:hover  { background: rgba(239,35,60,0.12); color: #fff; }
+    .lang-portal-item.active { background: rgba(239,35,60,0.08); color: #ef233c; }
+    .lang-portal-item .ldot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: currentColor; flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-6rem)] flex flex-col lg:flex-row gap-4 px-4 pb-4">
+    <!-- Left Panel: Problem Description -->
+    <div class="w-full lg:w-[45%] flex flex-col gap-4 animate-fade-up overflow-hidden">
+        <!-- Problem Header -->
+        <div class="glass-card p-6 shrink-0">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest">{{ problem.company_tag }}</span>
+                <span class="px-3 py-1 rounded-full {% if problem.difficulty == 'Basic' %}bg-green-500/10 border-green-500/20 text-green-400{% else %}bg-orange-500/10 border-orange-500/20 text-orange-400{% endif %} border text-[10px] font-bold uppercase tracking-widest">{{ problem.difficulty }}</span>
+            </div>
+            <h1 class="text-2xl font-bold font-manrope text-white mb-2">{{ problem.title }}</h1>
+            
+            <!-- Timer -->
+            <div class="flex items-center gap-4 mt-4">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20" id="timerBox">
+                    <iconify-icon icon="lucide:clock" class="text-[#ef233c]"></iconify-icon>
+                    <span class="text-sm font-mono font-bold text-white" id="timer">--:--</span>
+                </div>
+                <div class="h-1 flex-1 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-[#ef233c] transition-all duration-1000" id="progressBar" style="width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Body (Scrollable) -->
+        <div class="glass-card p-8 flex-1 overflow-y-auto custom-scrollbar space-y-8">
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-[#ef233c] mb-4">Problem Statement</h3>
+                <p class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{{ problem.description }}</p>
+            </div>
+
+            {% if problem.sample_input %}
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-green-400 mb-4">Sample Input</h3>
+                <pre class="bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-green-300 font-mono overflow-x-auto">{{ problem.sample_input }}</pre>
+            </div>
+            {% endif %}
+
+            {% if problem.sample_output %}
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-blue-400 mb-4">Expected Output</h3>
+                <pre class="bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-blue-300 font-mono overflow-x-auto">{{ problem.sample_output }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Panel: Code Editor -->
+    <div class="w-full lg:w-[55%] flex flex-col gap-4 animate-fade-up" style="animation-delay: 0.1s;">
+        <!-- Editor Header -->
+        <div class="glass-card p-4 flex items-center justify-between shrink-0" style="overflow:visible;">
+            <div class="flex items-center gap-3">
+                <div class="flex gap-1.5">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">{{ lang_info.name }} Editor</span>
+            </div>
+            
+            <!-- Language Switcher -->
+            <div id="langDropdownBtn" class="lang-dropdown-btn">
+                <iconify-icon icon="lucide:code-2" style="font-size:14px;color:#ef233c;"></iconify-icon>
+                <span id="langDropdownLabel">{% for lang in languages %}{% if lang.id == language %}{{ lang.name }}{% endif %}{% endfor %}</span>
+                <iconify-icon icon="lucide:chevron-down" class="chevron" style="font-size:14px;color:#71717a;"></iconify-icon>
+            </div>
+        </div>
+
+        <!-- Code Editor Area -->
+        <div class="glass-card flex-1 overflow-hidden flex flex-col" style="border-radius: 1rem;">
+            <textarea id="codeEditor">{{ boilerplate }}</textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-4 shrink-0">
+            <button onclick="submitCode()" id="submitBtn" class="shiny-cta flex-1 py-4 group">
+                <span class="relative z-10 flex items-center justify-center gap-2 text-white font-bold text-sm tracking-widest uppercase">
+                    <iconify-icon icon="lucide:send"></iconify-icon> Submit Solution
+                </span>
+            </button>
+            <button onclick="if(confirm('Exit without submitting?')) window.location.href='{% url 'coding_test_list' %}'" class="px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-zinc-500 text-xs font-bold uppercase tracking-widest hover:text-white hover:bg-white/10 transition-all">
+                Exit
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 z-[5000] hidden flex-col items-center justify-center bg-black/90 backdrop-blur-xl">
+    <div class="relative w-24 h-24 mb-8">
+        <div class="absolute inset-0 border-4 border-[#ef233c]/20 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-[#ef233c] border-t-transparent rounded-full animate-spin"></div>
+        <iconify-icon icon="lucide:cpu" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-white animate-pulse"></iconify-icon>
+    </div>
+    <h3 class="text-2xl font-bold font-manrope text-white mb-2">Evaluating Code</h3>
+    <p class="text-zinc-500">AI is analyzing correctness, efficiency, and code quality...</p>
+</div>
+
+<script>
+    // Init CodeMirror
+    const modeMap = {
+        'python': 'python',
+        'java': 'text/x-java',
+        'c': 'text/x-csrc',
+        'cpp': 'text/x-c++src',
+        'javascript': 'javascript',
+        'php': 'application/x-httpd-php',
+        'ruby': 'ruby',
+        'go': 'text/x-go'
+    };
+
+    const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        mode: modeMap['{{ language }}'] || 'python',
+        theme: 'dracula',
+        lineNumbers: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        lineWrapping: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+    });
+
+    // ── Language Dropdown (Portal pattern — menu lives on <body>) ──────────
+    const langBtn  = document.getElementById('langDropdownBtn');
+    const langLabel = document.getElementById('langDropdownLabel');
+
+    // Languages passed from Django
+    const LANGUAGES = [
+        {% for lang in languages %}
+        { id: '{{ lang.id }}', name: '{{ lang.name }}', active: {% if lang.id == language %}true{% else %}false{% endif %} },
+        {% endfor %}
+    ];
+    const CURRENT_LANG = '{{ language }}';
+
+    // Build and portal the menu to <body>
+    const portal = document.createElement('div');
+    portal.id = 'langPortalMenu';
+    LANGUAGES.forEach(lang => {
+        const item = document.createElement('div');
+        item.className = 'lang-portal-item' + (lang.active ? ' active' : '');
+        item.innerHTML = `<span class="ldot"></span>${lang.name}`;
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = `{% url 'coding_test_session' problem.id %}?lang=${lang.id}`;
+        });
+        portal.appendChild(item);
+    });
+    document.body.appendChild(portal);
+
+    let menuOpen = false;
+
+    function openMenu() {
+        const rect = langBtn.getBoundingClientRect();
+        portal.style.top   = (rect.bottom + 8) + 'px';
+        portal.style.right = (window.innerWidth - rect.right) + 'px';
+        portal.style.left  = 'auto';
+        portal.classList.add('open');
+        langBtn.classList.add('open');
+        menuOpen = true;
+    }
+
+    function closeMenu() {
+        portal.classList.remove('open');
+        langBtn.classList.remove('open');
+        menuOpen = false;
+    }
+
+    langBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuOpen ? closeMenu() : openMenu();
+    });
+
+    document.addEventListener('click', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('resize', closeMenu);
+
+    // Countdown Timer
+    const TOTAL = {{ total_time_seconds }};
+    let remaining = TOTAL;
+    let elapsed = 0;
+    const timerEl = document.getElementById('timer');
+    const progressBar = document.getElementById('progressBar');
+    const timerBox = document.getElementById('timerBox');
+
+    function fmt(s) {
+        return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+    }
+    timerEl.textContent = fmt(remaining);
+
+    const tick = setInterval(() => {
+        remaining--; elapsed++;
+        timerEl.textContent = fmt(remaining);
+        progressBar.style.width = `${(remaining/TOTAL)*100}%`;
+        
+        if (remaining <= 60) {
+            timerBox.classList.add('border-red-500', 'bg-red-500/20');
+            timerEl.classList.add('text-red-500');
+        } else if (remaining <= 300) {
+            timerEl.classList.add('text-yellow-400');
+        }
+        
+        if (remaining <= 0) {
+            clearInterval(tick);
+            submitCode();
+        }
+    }, 1000);
+
+    // Submit
+    async function submitCode() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        document.getElementById('loadingOverlay').classList.replace('hidden', 'flex');
+        clearInterval(tick);
+
+        const payload = {
+            problem_id: {{ problem.id }},
+            language: '{{ language }}',
+            code: editor.getValue(),
+            time_taken_seconds: elapsed,
+        };
+
+        try {
+            const res = await fetch('{% url "submit_coding_test" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                window.location.href = `/coding/result/${data.submission_id}/`;
+            } else {
+                alert('Submission failed: ' + (data.message || 'Unknown error'));
+                btn.disabled = false;
+                document.getElementById('loadingOverlay').classList.replace('flex', 'hidden');
+            }
+        } catch (err) {
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            document.getElementById('loadingOverlay').classList.replace('flex', 'hidden');
+        }
+    }
+</script>
+{% endblock %}

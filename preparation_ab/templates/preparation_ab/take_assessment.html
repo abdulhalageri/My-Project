@@ -1,0 +1,178 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Assessment: {{ category.name }} | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-12">
+    <!-- Assessment Header -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 animate-fade-up">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-4">
+                Active Module · {{ questions|length }} Questions
+            </div>
+            <h1 class="text-4xl font-bold font-manrope tracking-tight text-white">{{ category.name }}</h1>
+        </div>
+        
+        <!-- Countdown Timer -->
+        <div class="glass-card px-8 py-4 flex items-center gap-4 relative overflow-hidden group" id="timerCard">
+            <div class="absolute inset-0 bg-red-600/5 group-hover:bg-red-600/10 transition-colors" id="timerBg"></div>
+            <iconify-icon icon="lucide:clock" class="text-2xl text-[#ef233c] relative z-10" id="timerIcon"></iconify-icon>
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block">Time Remaining</span>
+                <span class="text-2xl font-mono font-bold text-white tracking-widest" id="timer">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8 animate-fade-up">
+        <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-[#ef233c] to-red-900 transition-all duration-1000" id="progressBar" style="width: 100%"></div>
+        </div>
+    </div>
+
+    <!-- Questions Form -->
+    <form method="POST" id="assessmentForm" class="space-y-8 animate-fade-up" style="animation-delay: 0.1s;">
+        {% csrf_token %}
+        <input type="hidden" name="question_ids" value="{{ question_ids }}">
+        <input type="hidden" name="time_taken" id="timeTaken" value="0">
+        
+        {% for q in questions %}
+        <div class="glass-card p-10 space-y-8 relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-8">
+                    <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                        Question {{ forloop.counter }} of {{ questions|length }}
+                    </span>
+                    <div class="flex gap-1">
+                        {% for i in questions %}
+                        <div class="w-1.5 h-1.5 rounded-full {% if forloop.parentloop.counter == forloop.counter %}bg-[#ef233c]{% else %}bg-white/10{% endif %}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold font-manrope leading-relaxed text-white mb-10">
+                    {{ q.text }}
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="relative group cursor-pointer block">
+                        <input type="radio" name="question_{{ q.id }}" value="A" class="peer hidden" required>
+                        <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 transition-all peer-checked:bg-[#ef233c] peer-checked:border-[#ef233c] peer-checked:text-white hover:border-white/20">
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-white/20 transition-colors">A</span>
+                                <span class="text-sm font-medium">{{ q.option_a }}</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="relative group cursor-pointer block">
+                        <input type="radio" name="question_{{ q.id }}" value="B" class="peer hidden" required>
+                        <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 transition-all peer-checked:bg-[#ef233c] peer-checked:border-[#ef233c] peer-checked:text-white hover:border-white/20">
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-white/20 transition-colors">B</span>
+                                <span class="text-sm font-medium">{{ q.option_b }}</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="relative group cursor-pointer block">
+                        <input type="radio" name="question_{{ q.id }}" value="C" class="peer hidden" required>
+                        <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 transition-all peer-checked:bg-[#ef233c] peer-checked:border-[#ef233c] peer-checked:text-white hover:border-white/20">
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-white/20 transition-colors">C</span>
+                                <span class="text-sm font-medium">{{ q.option_c }}</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="relative group cursor-pointer block">
+                        <input type="radio" name="question_{{ q.id }}" value="D" class="peer hidden" required>
+                        <div class="p-6 rounded-2xl bg-white/5 border border-white/10 text-zinc-400 transition-all peer-checked:bg-[#ef233c] peer-checked:border-[#ef233c] peer-checked:text-white hover:border-white/20">
+                            <div class="flex items-center gap-4">
+                                <span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-white/20 transition-colors">D</span>
+                                <span class="text-sm font-medium">{{ q.option_d }}</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="absolute top-[-20%] left-[-10%] w-64 h-64 bg-red-600/5 rounded-full blur-[80px] pointer-events-none"></div>
+        </div>
+        {% endfor %}
+
+        <!-- Form Footer -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8 py-12 border-t border-white/10">
+            <div class="flex items-center gap-4 text-zinc-500">
+                <iconify-icon icon="lucide:info" class="text-xl"></iconify-icon>
+                <p class="text-sm font-medium">Auto-submits when timer reaches zero.</p>
+            </div>
+            <button type="submit" class="shiny-cta px-12 py-4 group">
+                <span class="relative z-10 flex items-center gap-2 text-white font-bold text-sm tracking-widest uppercase">
+                    Finish Module <iconify-icon icon="lucide:check-circle" class="text-lg"></iconify-icon>
+                </span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Time Warning Overlay -->
+<div id="timeWarning" class="fixed inset-0 z-[5000] pointer-events-none flex items-center justify-center opacity-0 transition-opacity duration-500">
+    <div class="text-6xl font-bold font-manrope text-[#ef233c] animate-pulse">⏰ Time is running out!</div>
+</div>
+
+<script>
+    const TOTAL_SECONDS = {{ total_time_seconds }};
+    let remaining = TOTAL_SECONDS;
+    let elapsed = 0;
+    const timerEl = document.getElementById('timer');
+    const timerCard = document.getElementById('timerCard');
+    const timerBg = document.getElementById('timerBg');
+    const progressBar = document.getElementById('progressBar');
+    const form = document.getElementById('assessmentForm');
+    const timeTakenInput = document.getElementById('timeTaken');
+    const warningOverlay = document.getElementById('timeWarning');
+    let warned5 = false, warned1 = false;
+
+    function formatTime(secs) {
+        const m = String(Math.floor(secs / 60)).padStart(2, '0');
+        const s = String(secs % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    timerEl.textContent = formatTime(remaining);
+
+    const interval = setInterval(() => {
+        remaining--;
+        elapsed++;
+        timeTakenInput.value = elapsed;
+        
+        timerEl.textContent = formatTime(remaining);
+        progressBar.style.width = `${(remaining / TOTAL_SECONDS) * 100}%`;
+
+        // Color warnings
+        if (remaining <= 60) {
+            timerEl.classList.add('text-red-500');
+            timerCard.classList.add('border-red-500/50');
+            timerBg.style.background = 'rgba(239,35,60,0.15)';
+            if (!warned1) {
+                warned1 = true;
+                warningOverlay.style.opacity = '1';
+                setTimeout(() => warningOverlay.style.opacity = '0', 2000);
+            }
+        } else if (remaining <= 300) {
+            timerEl.classList.add('text-yellow-400');
+            if (!warned5) {
+                warned5 = true;
+                warningOverlay.querySelector('div').textContent = '⚡ 5 minutes remaining!';
+                warningOverlay.style.opacity = '1';
+                setTimeout(() => warningOverlay.style.opacity = '0', 2000);
+            }
+        }
+
+        if (remaining <= 0) {
+            clearInterval(interval);
+            timerEl.textContent = "00:00";
+            form.submit();
+        }
+    }, 1000);
+</script>
+{% endblock %}

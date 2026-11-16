@@ -1,0 +1,102 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Mock Interviews | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="text-center mb-16 animate-fade-up">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-6">
+            Live Simulation
+        </div>
+        <h1 class="text-4xl md:text-6xl font-bold font-manrope tracking-tight mb-6">Mock Interview Simulator</h1>
+        <p class="text-zinc-400 max-w-2xl mx-auto text-lg">Prepare for your dream role with our AI-powered interview modules. Each session features live camera interaction and instant performance analysis.</p>
+    </div>
+
+    <!-- Selection Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-up" style="animation-delay: 0.1s;">
+        <!-- HR ROUND -->
+        <div class="glass-card p-10 flex flex-col group relative overflow-hidden">
+            <div class="flex items-start justify-between mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
+                    🤝
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#ef233c]">Module 01</span>
+                    <h2 class="text-3xl font-bold font-manrope text-white">HR Round</h2>
+                </div>
+            </div>
+            
+            <p class="text-zinc-400 mb-8 leading-relaxed">
+                Focus on soft skills, behavioral questions, and cultural fit. Perfect for mastering the narrative of your professional journey.
+            </p>
+
+            <div class="space-y-4 mb-10 flex-1">
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-green-500"></iconify-icon>
+                    <span>10 Strategic HR Questions</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-green-500"></iconify-icon>
+                    <span>Behavioral Analysis</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-green-500"></iconify-icon>
+                    <span>Confidence & Body Language Check</span>
+                </div>
+            </div>
+
+            <a href="{% url 'mock_interview_session' 'HR' %}" class="shiny-cta py-4 group no-underline text-center">
+                <span class="relative z-10 flex items-center justify-center gap-2 text-white font-bold text-sm tracking-widest uppercase">
+                    Start HR Session <iconify-icon icon="lucide:play" class="text-lg transition-transform group-hover:translate-x-1"></iconify-icon>
+                </span>
+            </a>
+
+            <!-- Glow -->
+            <div class="absolute top-[-20%] right-[-20%] w-64 h-64 bg-red-600/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-red-600/10 transition-all"></div>
+        </div>
+
+        <!-- TECHNICAL ROUND -->
+        <div class="glass-card p-10 flex flex-col group relative overflow-hidden">
+            <div class="flex items-start justify-between mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
+                    💻
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-blue-400">Module 02</span>
+                    <h2 class="text-3xl font-bold font-manrope text-white">Technical Round</h2>
+                </div>
+            </div>
+            
+            <p class="text-zinc-400 mb-8 leading-relaxed">
+                Master core concepts, problem-solving, and technical explanations across major CS and engineering domains.
+            </p>
+
+            <div class="space-y-4 mb-10 flex-1">
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-blue-400"></iconify-icon>
+                    <span>10 Targeted Tech Questions</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-blue-400"></iconify-icon>
+                    <span>Core Concept Verification</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-blue-400"></iconify-icon>
+                    <span>Vocabulary & Precision Check</span>
+                </div>
+            </div>
+
+            <a href="{% url 'mock_interview_session' 'Technical' %}" class="shiny-cta py-4 group no-underline text-center">
+                <span class="relative z-10 flex items-center justify-center gap-2 text-white font-bold text-sm tracking-widest uppercase">
+                    Start Technical Session <iconify-icon icon="lucide:terminal" class="text-lg transition-transform group-hover:translate-x-1"></iconify-icon>
+                </span>
+            </a>
+
+            <!-- Glow -->
+            <div class="absolute top-[-20%] right-[-20%] w-64 h-64 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-600/10 transition-all"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

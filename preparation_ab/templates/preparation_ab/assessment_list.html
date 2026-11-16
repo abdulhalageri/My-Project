@@ -1,0 +1,62 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Assessments | PlacementHub AI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="mb-12 animate-fade-up">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider mb-6">
+            Skill Evaluation
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold font-manrope tracking-tight mb-4">Preparation Assessments</h1>
+        <p class="text-zinc-500 max-w-2xl">Timed tests designed by placement experts. Each question has a 1-minute time limit — AI generates fresh questions on every attempt.</p>
+    </div>
+
+    <!-- Category Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up" style="animation-delay: 0.1s;">
+        {% for item in category_data %}
+        <div class="glass-card p-8 flex flex-col group relative overflow-hidden">
+            <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform">
+                {% if "Quant" in item.category.name %}🧮{% elif "Logi" in item.category.name %}💡{% elif "Repo" in item.category.name %}📉{% elif "Verbal" in item.category.name %}🗣️{% else %}📝{% endif %}
+            </div>
+            
+            <h3 class="text-2xl font-bold font-manrope mb-4 text-white group-hover:text-[#ef233c] transition-colors">{{ item.category.name }}</h3>
+            <p class="text-zinc-500 text-sm leading-relaxed mb-6 flex-1">
+                {{ item.category.description|default:"Focused mock test to evaluate your fundamental speed and accuracy in this segment." }}
+            </p>
+
+            <!-- Time & Question Info -->
+            <div class="flex items-center gap-4 mb-8">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+                    <iconify-icon icon="lucide:help-circle" class="text-[#ef233c] text-sm"></iconify-icon>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{{ item.num_questions }} Qs</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+                    <iconify-icon icon="lucide:clock" class="text-yellow-500 text-sm"></iconify-icon>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{{ item.total_time_minutes }} min</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+                    <iconify-icon icon="lucide:sparkles" class="text-purple-400 text-sm"></iconify-icon>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">AI Fresh</span>
+                </div>
+            </div>
+
+            <a href="{% url 'take_assessment' item.category.id %}" class="shiny-cta py-3 group no-underline text-center">
+                <span class="relative z-10 flex items-center justify-center gap-2 text-white font-bold text-xs tracking-widest uppercase">
+                    Start Assessment <iconify-icon icon="lucide:play" class="text-sm"></iconify-icon>
+                </span>
+            </a>
+
+            <div class="absolute top-[-10%] right-[-10%] w-32 h-32 bg-red-600/5 rounded-full blur-3xl pointer-events-none group-hover:bg-red-600/20 transition-all"></div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
+            <iconify-icon icon="lucide:clipboard-x" class="text-6xl text-zinc-800 mb-6"></iconify-icon>
+            <p class="text-zinc-500 text-lg">No assessments are available at this time. Please check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
