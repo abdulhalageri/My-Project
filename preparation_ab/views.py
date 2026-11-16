@@ -763,7 +763,7 @@ def process_mock_interview(request):
             transcript = data.get('transcript', "")
             
             # --- OPENAI FEEDBACK LOGIC ---
-            if status == 'Failed':
+            if status == 'Failed' or not str(transcript or "").strip():
                 feedback = "Interview terminated due to multiple interruptions. Please maintain focus and stay within the application window."
                 score = 0
             else:
@@ -777,7 +777,7 @@ def process_mock_interview(request):
                     "strengths": [],
                     "areas_for_improvement": [],
                     "professional_tips": [],
-                    "score": confidence
+                    "score": 0
                 }
 
                 prompt = f"""
@@ -822,12 +822,12 @@ def process_mock_interview(request):
                         *[f"- {t}" for t in ai_data.get('professional_tips', [])]
                     ]
                     feedback = "\n".join(feedback_parts)
-                    score = ai_data.get('score', confidence)
+                    score = ai_data.get('score', 0)
                 except Exception as e:
                     print(f"INTERVIEW AI FEEDBACK ERROR: {str(e)}")
                     # Fallback already set in ai_data initialization
                     feedback = ai_data.get('overall_feedback', '')
-                    score = ai_data.get('score', confidence)
+                    score = ai_data.get('score', 0)
 
             session = MockInterviewSession.objects.create(
                 user=request.user,
