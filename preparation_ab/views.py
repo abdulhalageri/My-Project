@@ -1,4 +1,5 @@
-﻿from .models import CustomUser
+﻿import traceback
+from .models import CustomUser
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -11,6 +12,8 @@ from .forms import (
     RegisterForm, LoginForm, ProfileUpdateForm, AssessmentForm,
     MockInterviewUpdateForm, CodingSubmissionUpdateForm
 )
+
+
 import json
 import random
 from django.views.decorators.csrf import csrf_exempt
@@ -287,12 +290,18 @@ def resume_upload_view(request):
 
 
         # Save to database
-        resume_file.seek(0)
-        upload = ResumeUpload.objects.create(
-            user=request.user,
-            file=resume_file,
-            original_filename=resume_file.name,
-        )
+        try:
+            resume_file.seek(0)
+            upload = ResumeUpload.objects.create(
+                user=request.user,
+                file=resume_file,
+                original_filename=resume_file.name,
+            )
+        except Exception:
+            traceback.print_exc()
+            messages.error(request, "Resume upload failed. Please try again.")
+            return redirect('resume_upload')
+                
 
         # --- OPENAI ANALYSIS ---
         try:
@@ -375,8 +384,9 @@ def resume_upload_view(request):
             messages.success(request, f'Resume "{resume_file.name}" analyzed successfully!')
         except Exception as e:
             print(f"AI ERROR: {str(e)}") # Log to server console
+            traceback.print_exc()
             messages.error(request, f"AI Analysis failed: {str(e)}")
-            analysis = get_mock_analysis()
+            analysis = None
 
     # Fetch recent uploads to show history
     recent_uploads = ResumeUpload.objects.filter(user=request.user).order_by('-uploaded_at')[:5]
