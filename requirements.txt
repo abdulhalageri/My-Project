@@ -12,3 +12,5 @@ requests==2.34.2
 gunicorn
 whitenoise
 python-dotenv
+psycopg[binary]
+dj-database-url
