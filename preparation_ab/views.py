@@ -1121,7 +1121,7 @@ def submit_coding_test(request):
                 res_content = response.text
                 if not res_content:
                     raise ValueError("Gemini returned an empty response")
-                ai_data = json.loads(res_content)
+                ai_data = json.loads(res_content, strict=False)
                 
                 submission = CodingSubmission.objects.create(
                     user=request.user,
