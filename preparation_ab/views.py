@@ -340,18 +340,23 @@ def resume_upload_view(request):
             Respond with valid JSON only.
             """
             
-            response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a professional ATS resume reviewer. Return strictly valid JSON matching the user's requested structure. Be specific and provide unique scores based on the actual content."},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"}
+            response = gemini_client.models.generate_content(
+                model=GEMINI_MODEL_FLASH,
+                contents=prompt,
+                config={
+                    "response_mime_type": "application/json",
+                    "system_instruction": (
+                        "You are a professional ATS resume reviewer. "
+                        "Return valid JSON matching the requested structure. "
+                        "Base all scores and recommendations on the actual resume content. "
+                        "Do not invent personal information, experience, or qualifications."
+                    ),
+                },
             )
-            
-            res_content = response.choices[0].message.content
+
+            res_content = response.text
             if not res_content:
-                raise ValueError("OpenAI returned an empty response")
+                raise ValueError("Gemini returned an empty response")
             
             analysis_data = json.loads(res_content.strip())
             
