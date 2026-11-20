@@ -207,6 +207,7 @@ class CodingSubmission(models.Model):
     total_test_cases = models.IntegerField(default=0)
     time_taken_seconds = models.IntegerField(default=0)
     ai_feedback = models.TextField(blank=True)
+    corrected_code = models.TextField(blank=True, default='')
     strengths = models.JSONField(default=list)
     weaknesses = models.JSONField(default=list)
     improvement_tips = models.JSONField(default=list)

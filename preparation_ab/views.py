@@ -1083,7 +1083,7 @@ def submit_coding_test(request):
             3. Provide a constructive, professional review.
             4. If the solution is incorrect, identify the exact logical or syntax mistakes.
             5. Explain which test cases fail and why. Do not invent successful test results.
-            6. Include a corrected working solution in the code_review field.
+            6. Explain the mistakes in code_review, and provide the complete corrected solution in the separate corrected_code field. The corrected_code value must contain only executable {language} code, without Markdown fences.
 
             **Return a JSON object exactly in this format:**
             {{
@@ -1095,6 +1095,7 @@ def submit_coding_test(request):
                 "weaknesses": ["list of errors or inefficiencies"],
                 "improvement_tips": ["actionable advice to improve"],
                 "code_review": "Line-by-line or section-by-section analysis with code snippets if needed",
+                "corrected_code": "Complete corrected executable code without Markdown fences",
                 "time_complexity": "e.g., O(n log n)",
                 "space_complexity": "e.g., O(n)"
             }}
@@ -1133,6 +1134,7 @@ def submit_coding_test(request):
                     total_test_cases=ai_data.get('total_test_cases', 0),
                     time_taken_seconds=time_taken,
                     ai_feedback=ai_data.get('feedback', '') + "\n\n" + ai_data.get('code_review', ''),
+                    corrected_code=ai_data.get('corrected_code', ''),
                     strengths=ai_data.get('strengths', []),
                     weaknesses=ai_data.get('weaknesses', []),
                     improvement_tips=ai_data.get('improvement_tips', []),
