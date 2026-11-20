@@ -1044,6 +1044,11 @@ def submit_coding_test(request):
             problem_id = data.get('problem_id')
             language = data.get('language', 'python')
             code = data.get('code', '')
+            if not isinstance(code, str) or not code.strip():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please write your code before submitting.'
+                }, status=400)
             time_taken = data.get('time_taken_seconds', 0)
             
             problem = get_object_or_404(CodingProblem, id=problem_id)
@@ -1076,6 +1081,9 @@ def submit_coding_test(request):
             1. Mentally execute the code against all test cases.
             2. Check for logic errors, time complexity issues, and language-specific best practices.
             3. Provide a constructive, professional review.
+            4. If the solution is incorrect, identify the exact logical or syntax mistakes.
+            5. Explain which test cases fail and why. Do not invent successful test results.
+            6. Include a corrected working solution in the code_review field.
 
             **Return a JSON object exactly in this format:**
             {{
@@ -1095,16 +1103,24 @@ def submit_coding_test(request):
             """
             
             try:
-                response = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "You are a competitive programming judge. Return strictly valid JSON."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    response_format={"type": "json_object"}
+                response = gemini_client.models.generate_content(
+                    model=GEMINI_MODEL_FLASH,
+                    contents=prompt,
+                    config={
+                        "response_mime_type": "application/json",
+                        "system_instruction": (
+                            "You are a competitive programming judge. "
+                            "Evaluate the submitted code carefully. "
+                            "Return valid JSON only. "
+                            "Do not award points for blank or incorrect solutions. "
+                            "Explain specific mistakes and suggest corrected code."
+                        ),
+                    },
                 )
-                
-                res_content = response.choices[0].message.content
+
+                res_content = response.text
+                if not res_content:
+                    raise ValueError("Gemini returned an empty response")
                 ai_data = json.loads(res_content)
                 
                 submission = CodingSubmission.objects.create(
@@ -1133,7 +1149,7 @@ def submit_coding_test(request):
                     problem=problem,
                     language=language,
                     code=code,
-                    score=50,
+                    score=0,
                     time_taken_seconds=time_taken,
                     ai_feedback=f"AI evaluation temporarily unavailable. Error: {str(e)}",
                     strengths=["Code was submitted successfully"],
