@@ -67,20 +67,22 @@ except ImportError:
     gTTS = None
     print("WARNING: gtts not installed. gTTS disabled.")
 
-# Initialize OpenAI Client
-if _openai_available:
-   
-    openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize OpenAI Client only when an API key is available
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+if _openai_available and openai_api_key:
+    openai_client = openai.OpenAI(api_key=openai_api_key)
 else:
     openai_client = None
 
 # Initialize Gemini Client
 
-gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+gemini_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 
 # Model definitions
-GEMINI_MODEL_PRO = 'gemini-2.5-pro'
+GEMINI_MODEL_PRO = 'gemini-2.5-flash'
 GEMINI_MODEL_FLASH = 'gemini-2.5-flash'
 
 # Load YOLOv8 for server-side proctoring (cached)
@@ -1365,11 +1367,17 @@ def generate_ai_coding_problem(request):
     difficulty = request.GET.get('difficulty', 'Basic')
 
     try:
+        existing_titles = list(
+            CodingProblem.objects.values_list('title', flat=True).distinct()[:100]
+        )
+
         prompt = f"""
         Generate a professional coding interview problem for the company: "{company}".
         Difficulty level: {difficulty}.
         
-        The problem should be unique and not already in common lists.
+        The problem must be unique and appropriate for {company}.
+        Do NOT generate any of these existing questions: {existing_titles}
+        Choose a different problem title, concept, and solution approach.
         Respond ONLY with a valid JSON object containing:
         {{
             "title": "Problem Title",
@@ -1392,6 +1400,12 @@ def generate_ai_coding_problem(request):
         )
 
         data = json.loads(response.text)
+        if CodingProblem.objects.filter(title__iexact=data['title'].strip()).exists():
+            messages.warning(
+                request,
+                "AI generated a duplicate question. Please try again."
+            )
+            return redirect('coding_test_list')
         
         # Save to DB
         problem = CodingProblem.objects.create(

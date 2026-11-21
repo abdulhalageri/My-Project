@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY") or ""
 RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY") or ""
 SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
+RECAPTCHA_TESTING = DEBUG
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

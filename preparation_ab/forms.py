@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import CustomUser, MockInterviewSession, CodingSubmission, CodingProblem
 from django_recaptcha.fields import ReCaptchaField
@@ -55,7 +56,8 @@ class RegisterForm(UserCreationForm):
         'placeholder': 'Year of Passing'
     }))
 
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    if not settings.DEBUG:
+        captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
     class Meta:
         model = CustomUser
@@ -92,7 +94,8 @@ class RegisterForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    if not settings.DEBUG:
+        captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
 
     username = forms.CharField(widget=forms.TextInput(attrs={
         'class': 'form-input',
