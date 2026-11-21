@@ -203,6 +203,7 @@ class CodingSubmission(models.Model):
     language = models.CharField(max_length=30)
     code = models.TextField()
     score = models.IntegerField(default=0)
+    evaluation_status = models.CharField(max_length=20, default='completed')
     test_cases_passed = models.IntegerField(default=0)
     total_test_cases = models.IntegerField(default=0)
     time_taken_seconds = models.IntegerField(default=0)

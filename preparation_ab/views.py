@@ -1172,6 +1172,7 @@ def submit_coding_test(request):
                     code=code,
                     score=0,
                     time_taken_seconds=time_taken,
+                    evaluation_status='pending',
                     ai_feedback=f"AI evaluation temporarily unavailable. Error: {str(e)}",
                     strengths=["Code was submitted successfully"],
                     weaknesses=["Could not perform full AI analysis"],
