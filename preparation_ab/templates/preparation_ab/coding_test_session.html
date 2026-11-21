@@ -1,4 +1,5 @@
 {% extends "layout/base.html" %}
+{% load markdown_filters %}
 {% load static %}
 
 {% block title %}{{ problem.title }} | Coding Test{% endblock %}
@@ -110,7 +111,7 @@
         <div class="glass-card p-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-8">
             <div>
                 <h3 class="text-xs font-bold uppercase tracking-widest text-[#ef233c] mb-4">Problem Statement</h3>
-                <p class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{{ problem.description }}</p>
+                <div class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{{ problem.description|render_markdown }}</div>
             </div>
 
             {% if problem.sample_input %}
