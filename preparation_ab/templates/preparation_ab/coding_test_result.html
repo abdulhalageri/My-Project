@@ -90,7 +90,8 @@
                 <ul class="space-y-3">
                     {% for w in submission.weaknesses %}
                     <li class="flex items-start gap-3 text-sm text-red-300">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#ef233c] mt-2 shrink-0"></span>{{ w }}
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#ef233c] mt-2 shrink-0"></span>
+                        <div class="min-w-0">{{ w|render_markdown }}</div>
                     </li>
                     {% empty %}
                     <li class="text-zinc-500 text-sm">No specific weaknesses identified.</li>
