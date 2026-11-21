@@ -116,10 +116,11 @@
                 <h3 class="text-xl font-bold font-manrope uppercase tracking-widest text-white">Session Recording</h3>
             </div>
             <div class="aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black relative group">
-                <video width="100%" height="auto" controls class="w-full h-full object-contain">
+                <video id="sessionRecording" width="100%" height="auto" controls preload="metadata" playsinline class="w-full h-full object-contain">
                     <source src="{{ session.recording.url }}" type="video/webm">
                     Your browser does not support the video tag.
                 </video>
+                <p id="videoError" class="hidden text-red-400 text-sm p-4">Recording load nahi ho paayi. Video file ya browser compatibility check karni hogi.</p>
             </div>
         </div>
         {% endif %}
@@ -140,6 +141,15 @@
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('sessionRecording');
+        const videoError = document.getElementById('videoError');
+
+        if (video && videoError) {
+            video.addEventListener('error', () => {
+                videoError.classList.remove('hidden');
+                console.error('Interview video loading failed.');
+            }, true);
+        }
         const score = {{ session.score }};
         const bar = document.getElementById('scoreBar');
         const circumference = 2 * Math.PI * 120;

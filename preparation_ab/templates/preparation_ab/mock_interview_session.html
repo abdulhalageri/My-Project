@@ -13,7 +13,13 @@
     }
 
     body {
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    @media (min-width: 1024px) {
+        body {
+            overflow: hidden;
+        }
     }
     .hidden-force {
     display: none !important;
@@ -25,11 +31,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="h-screen flex flex-row gap-6 p-6">
+<div class="min-h-screen flex flex-col lg:flex-row gap-4 lg:gap-6 p-3 sm:p-6">
     <!-- Main Interview Area (Left) -->
     <div class="flex-1 flex flex-col gap-6">
         <!-- Top Stats HUD -->
-        <div class="grid grid-cols-3 gap-4 animate-fade-up">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 animate-fade-up">
             <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Pace</span>
                 <span class="text-2xl font-bold text-white" id="paceVal">0 WPM</span>
@@ -45,7 +51,7 @@
         </div>
 
         <!-- Question Display Area -->
-        <div class="flex-1 glass-card p-12 flex flex-col justify-center relative overflow-hidden group">
+        <div class="flex-1 min-w-0 glass-card p-4 sm:p-6 lg:p-12 flex flex-col justify-center relative overflow-hidden group">
             <div class="absolute top-0 left-0 w-1 h-full bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.5)]"></div>
 
             <div class="relative z-10">
@@ -59,14 +65,14 @@
                     </div>
                 </div>
 
-                <h2 class="text-4xl md:text-5xl font-bold font-manrope leading-tight text-white mb-12 min-h-[150px]"
+                <h2 class="text-2xl sm:text-3xl lg:text-5xl font-bold font-manrope leading-tight text-white mb-6 lg:mb-12 min-h-0 lg:min-h-[150px] break-words"
                     id="questionText">
                     Preparing your session...
                 </h2>
 
-                <div class="flex items-center gap-6">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
                     <button
-                        class="px-10 py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center gap-3 group"
+                        class="w-full sm:w-auto px-4 sm:px-10 py-4 sm:py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 group"
                         id="nextBtn" disabled onclick="currentIdx++; updateQuestion();">
                         <span class="group-hover:translate-x-1 transition-transform" id="nextBtnText">Next Question
                             ➔</span>
@@ -84,7 +90,7 @@
     </div>
 
     <!-- Sidebar: Camera & Proctoring (Right) -->
-    <div class="w-[300px] md:w-[350px] lg:w-[450px] flex flex-col gap-6 shrink-0">
+    <div class="w-full lg:w-[450px] lg:shrink-0 min-w-0 flex flex-col gap-4 lg:gap-6">
         <!-- Live Feed Container -->
         <div class="glass-card aspect-video border-white/10 relative overflow-hidden shadow-2xl bg-black">
             <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
@@ -389,7 +395,7 @@
         isModelReady = true;
         checkReadyState();
 
-        nextBtn.disabled = false;
+        nextBtn.disabled = true;
         document.getElementById('nextBtnText').innerText = "Next Question ➔";
     }
 
@@ -443,7 +449,12 @@
         nextBtn.disabled = true;
         nextBtn.querySelector('span').innerText = "Uploading Session...";
 
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            await new Promise((resolve) => {
+                mediaRecorder.addEventListener('stop', resolve, { once: true });
+                mediaRecorder.stop();
+            });
+        }
 
         const payload = {
             round_type: roundType, status: status, warnings: warnings,
@@ -468,13 +479,27 @@
                     const formData = new FormData();
                     formData.append('video', blob, 'interview.webm');
                     formData.append('session_id', res.session_id);
-                    await fetch(videoUploadUrl, { method: 'POST', body: formData });
+                    const uploadResponse = await fetch(videoUploadUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                if (!uploadResponse.ok) {
+                    throw new Error("Video upload failed: HTTP " + uploadResponse.status);
+                };
                 }
                 window.location.href = resultBaseUrl + res.session_id + '/';
             } else {
                 window.location.href = "{% url 'dashboard' %}";
             }
-        } catch (err) { window.location.href = "{% url 'dashboard' %}"; }
+        } catch (err) {
+            console.error("Interview submission failed:", err);
+            alert("Interview save/upload failed: " + err.message);
+            nextBtn.disabled = false;
+            nextBtn.querySelector('span').innerText = "Submission Failed";
+            nextBtn.onclick = null;
+            isWarningSubmitting = false;
+        }
     }
 
 async function startInterview() {

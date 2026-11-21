@@ -180,6 +180,40 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #ef233c;
         }
+
+        /* Responsive layout safety */
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: clip;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        img, video, canvas, iframe {
+            max-width: 100%;
+        }
+
+        @media (max-width: 767px) {
+            main {
+                width: 100%;
+                min-width: 0;
+            }
+
+            main > * {
+                min-width: 0;
+            }
+
+            .glass-card {
+                max-width: 100%;
+            }
+
+            input, textarea, select {
+                max-width: 100%;
+            }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -222,6 +256,14 @@
             </div>
 
             <div class="flex items-center gap-4">
+                <button type="button"
+                        id="mobileMenuButton"
+                        class="md:hidden text-white p-2"
+                        aria-label="Open navigation menu"
+                        aria-expanded="false"
+                        aria-controls="mobileMenu">
+                    <iconify-icon icon="lucide:menu" class="text-2xl"></iconify-icon>
+                </button>
                 {% if user.is_authenticated %}
                 <div class="hidden md:flex items-center gap-3 pr-4 border-r border-white/10">
                     <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-red-500 border border-red-500/30">
@@ -246,6 +288,25 @@
                 {% endif %}
             </div>
         </nav>
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu"
+            class="hidden md:hidden max-w-5xl mx-auto mt-2 bg-zinc-900 border border-white/10 rounded-2xl p-5 shadow-2xl">
+
+            <div class="flex flex-col gap-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'assessment_list' %}">Assessments</a>
+                    <a href="{% url 'coding_test_list' %}">Coding Tests</a>
+                    <a href="{% url 'resume_upload' %}">Resume AI</a>
+                    <a href="{% url 'recommendations' %}">Career AI</a>
+                    <a href="{% url 'mock_interview_list' %}">Mock Interviews</a>
+                {% else %}
+                    <a href="{% url 'home' %}">Home</a>
+                    <a href="{% url 'login' %}">Log In</a>
+                    <a href="{% url 'register' %}">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
     </header>
 
     <main class="relative z-10 pt-24 min-h-screen">
@@ -407,6 +468,24 @@
         }
     </script>
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const menuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if (menuButton && mobileMenu) {
+            menuButton.addEventListener('click', function () {
+                const isHidden = mobileMenu.classList.toggle('hidden');
+
+                menuButton.setAttribute('aria-expanded', String(!isHidden));
+                menuButton.setAttribute(
+                    'aria-label',
+                    isHidden ? 'Open navigation menu' : 'Close navigation menu'
+                );
+            });
+        }
+    });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

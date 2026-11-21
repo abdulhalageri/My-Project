@@ -781,6 +781,7 @@ def process_mock_interview(request):
             transcript = data.get('transcript', "")
             
             # --- OPENAI FEEDBACK LOGIC ---
+            ai_data = {}
             if status == 'Failed' or not str(transcript or "").strip():
                 feedback = "Interview terminated due to multiple interruptions. Please maintain focus and stay within the application window."
                 score = 0
