@@ -1,4 +1,5 @@
 ﻿import traceback
+import time
 from .models import CustomUser
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -1106,20 +1107,36 @@ def submit_coding_test(request):
             """
             
             try:
-                response = gemini_client.models.generate_content(
-                    model=GEMINI_MODEL_FLASH,
-                    contents=prompt,
-                    config={
-                        "response_mime_type": "application/json",
-                        "system_instruction": (
-                            "You are a competitive programming judge. "
-                            "Evaluate the submitted code carefully. "
-                            "Return valid JSON only. "
-                            "Do not award points for blank or incorrect solutions. "
-                            "Explain specific mistakes and suggest corrected code."
-                        ),
-                    },
-                )
+                for attempt in range(3):
+                    try:
+                        response = gemini_client.models.generate_content(
+                            model=GEMINI_MODEL_FLASH,
+                            contents=prompt,
+                            config={
+                                "response_mime_type": "application/json",
+                                "system_instruction": (
+                                    "You are a competitive programming judge. "
+                                    "Evaluate the submitted code carefully. "
+                                    "Return valid JSON only. "
+                                    "Do not award points for blank or incorrect solutions. "
+                                    "Explain specific mistakes and suggest corrected code."
+                                ),
+                            },
+                        )
+                        break
+                    except Exception as e:
+                        error_text = str(e)
+                        is_temporary = (
+                            "503" in error_text
+                            or "UNAVAILABLE" in error_text
+                            or "429" in error_text
+                            or "RESOURCE_EXHAUSTED" in error_text
+                        )
+
+                        if not is_temporary or attempt == 2:
+                            raise
+
+                        time.sleep(2 * (attempt + 1))
 
                 res_content = response.text
                 if not res_content:
