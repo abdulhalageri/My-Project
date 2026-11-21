@@ -74,7 +74,8 @@
                 <ul class="space-y-3">
                     {% for s in submission.strengths %}
                     <li class="flex items-start gap-3 text-sm text-green-300">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0"></span>{{ s }}
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0"></span>
+                        <div class="min-w-0">{{ s|render_markdown }}</div>
                     </li>
                     {% empty %}
                     <li class="text-zinc-500 text-sm">No specific strengths identified.</li>
@@ -109,7 +110,8 @@
             <ul class="space-y-3">
                 {% for tip in submission.improvement_tips %}
                 <li class="flex items-start gap-3 text-sm text-blue-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>{{ tip }}
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                    <div class="min-w-0">{{ tip|render_markdown }}</div>
                 </li>
                 {% empty %}
                 <li class="text-zinc-500 text-sm">Complete more problems to get detailed improvement suggestions.</li>
