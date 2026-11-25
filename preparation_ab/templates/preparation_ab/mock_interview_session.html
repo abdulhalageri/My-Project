@@ -5,11 +5,25 @@
 
 {% block extra_head %}
 <!-- YOLOv8 SERVER PROCTORING -->
+<script type="module">
+    import {
+        FaceLandmarker,
+        FilesetResolver
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm";
+
+    window.FaceLandmarker = FaceLandmarker;
+    window.FilesetResolver = FilesetResolver;
+</script>
 <style>
     /* Full-screen experience adjustments */
     header,
-    footer {
+    footer,
+    .gradient-blur {
         display: none !important;
+    }
+
+    main {
+        padding-top: 0 !important;
     }
 
     body {
@@ -18,33 +32,100 @@
     }
     @media (min-width: 1024px) {
         body {
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
     }
     .hidden-force {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Responsive Interview Layout */
+
+    #interviewLayout {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100%;
+        gap: 16px;
+        box-sizing: border-box;
+    }
+
+    #interviewMain {
+        width: 100%;
+        min-width: 0;
+        order: 2 !important;
+    }
+
+    #interviewSidebar {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0;
+        order: 1 !important;
+    }
+
+    /* Mobile Camera */
+    #interviewSidebar > .glass-card:first-child {
+        height: 200px !important;
+    }
+
+    /* Mobile Progress List */
+    #interviewSidebar > .glass-card:nth-child(2) {
+        display: none !important;
+    }
+
+    /* Laptop and Desktop */
+    @media (min-width: 1024px) {
+
+        #interviewLayout {
+            flex-direction: row !important;
+            align-items: stretch;
+            gap: 24px;
+        }
+
+        #interviewMain {
+            flex: 1 1 0%;
+            width: auto;
+            order: 1 !important;
+        }
+
+        #interviewSidebar {
+            flex: 0 0 35%;
+            width: 35% !important;
+            max-width: 450px !important;
+            order: 2 !important;
+        }
+
+        #interviewSidebar > .glass-card:first-child {
+            height: auto !important;
+            aspect-ratio: 16 / 9;
+        }
+
+        #interviewSidebar > .glass-card:nth-child(2) {
+            display: flex !important;
+            flex-direction: column;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex flex-col lg:flex-row gap-4 lg:gap-6 p-3 sm:p-6">
+<div id="interviewLayout" class="min-h-screen flex flex-col lg:flex-row gap-4 lg:gap-6 p-3 sm:p-6">
     <!-- Main Interview Area (Left) -->
-    <div class="flex-1 flex flex-col gap-6">
+    <div id="interviewMain" class="flex-1 min-w-0 flex flex-col gap-4 lg:gap-6 order-2 lg:order-1">
         <!-- Top Stats HUD -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 animate-fade-up">
-            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 animate-fade-up">
+            <div class="glass-card min-w-0 p-2 sm:p-6 border-white/5 bg-white/[0.02]">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Pace</span>
                 <span class="text-2xl font-bold text-white" id="paceVal">0 WPM</span>
             </div>
-            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+            <div class="glass-card min-w-0 p-2 sm:p-6 border-white/5 bg-white/[0.02]">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Confidence</span>
                 <span class="text-2xl font-bold text-white" id="confVal">0%</span>
             </div>
-            <div class="glass-card p-6 border-white/5 bg-white/[0.02]">
+            <div class="glass-card min-w-0 p-2 sm:p-6 border-white/5 bg-white/[0.02]">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Fillers</span>
                 <span class="text-2xl font-bold text-white" id="fillerVal">0</span>
             </div>
@@ -90,10 +171,10 @@
     </div>
 
     <!-- Sidebar: Camera & Proctoring (Right) -->
-    <div class="w-full lg:w-[450px] lg:shrink-0 min-w-0 flex flex-col gap-4 lg:gap-6">
+    <div id="interviewSidebar" class="w-full lg:w-[36%] lg:max-w-[450px] lg:shrink-0 min-w-0 flex flex-col gap-4 lg:gap-6 order-1 lg:order-2">
         <!-- Live Feed Container -->
-        <div class="glass-card aspect-video border-white/10 relative overflow-hidden shadow-2xl bg-black">
-            <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
+        <div class="glass-card w-full h-[180px] sm:h-[260px] lg:h-auto lg:aspect-video border-white/10 relative overflow-hidden shadow-2xl bg-black">
+            <video id="videoElement" autoplay playsinline muted class="w-full h-full object-contain scale-x-[-1]"></video>
 
             <!-- Proxy Alert / Objects Detection Overlay -->
             <div id="proxyAlert"
@@ -126,7 +207,7 @@
         </div>
 
         <!-- Progress List -->
-        <div class="glass-card flex-1 p-8 overflow-hidden flex flex-col border-white/5">
+        <div class="glass-card flex-1 p-8 overflow-hidden hidden lg:flex flex-col border-white/5">
             <h4 class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-6">Interview Progress</h4>
             <div class="flex-1 overflow-y-auto pr-4 custom-scrollbar" id="progressList">
                 {% for q in questions %}
@@ -151,8 +232,8 @@
 <canvas id="captureCanvas" class="hidden"></canvas>{{ questions_json|json_script:"questions-data" }}
 
 <!-- Start Confirmation Overlay -->
-<div class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6" id="startOverlay">
-    <div class="glass-card max-w-md w-full p-12 text-center border-white/5 animate-fade-up">
+<div class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto" id="startOverlay">
+    <div class="glass-card max-w-md w-full p-4 sm:p-8 lg:p-12 my-auto text-center border-white/5 animate-fade-up">
         <div class="w-20 h-20 rounded-3xl bg-red-600/10 flex items-center justify-center text-4xl mx-auto mb-8">
             🛡️
         </div>
@@ -165,7 +246,7 @@
         <!-- Preview Feed inside Overlay -->
         <div class="mb-8 aspect-video rounded-2xl bg-black/40 border border-white/10 overflow-hidden relative group">
             <video id="overlayPreview" autoplay playsinline muted
-                class="w-full h-full object-cover scale-x-[-1]"></video>
+                class="w-full h-full object-contain scale-x-[-1]"></video>
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="previewPlaceholder">
                 <iconify-icon icon="lucide:camera" class="text-3xl text-zinc-700"></iconify-icon>
             </div>
@@ -208,6 +289,7 @@
 
 <script>
     const questions = JSON.parse(document.getElementById('questions-data').textContent);
+    console.log("INTERVIEW QUESTIONS COUNT:", questions.length);
     const roundType = "{{ round_type }}";
     const processUrl = "{% url 'process_mock_interview' %}";
     const resultBaseUrl = "{% url 'mock_interview_result' 0 %}".replace('0/', '');
@@ -223,6 +305,7 @@
     const synth = window.speechSynthesis;
     let preferredVoice = null;
     let recognition = null;
+    let isInterviewerSpeaking = false;
     let totalWords = 0;
     let currentQuestionWords = 0;
     let currentQuestionStartTime = 0;
@@ -243,9 +326,54 @@
     let recordedChunks = [];
     let isCameraReady = false;
     let activeStream = null;
+    let audioContext = null;
+    let audioDestination = null;
+    let microphoneSource = null;
+    let interviewerAudio = null;
+    let interviewerAudioSource = null;
 
     const camStatus = document.getElementById('cameraStatus');
     const startBtnText = document.getElementById('startBtnText');
+
+    async function verifySecurityInference() {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 240;
+
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx || video.readyState < 2) {
+                return false;
+            }
+
+            ctx.drawImage(video, 0, 0, 320, 240);
+
+            const response = await fetch("{% url 'proctor_frame' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image: canvas.toDataURL('image/jpeg', 0.5)
+                }),
+                signal: AbortSignal.timeout(15000)
+            });
+
+            const data = await response.json();
+
+            const ready = response.ok &&
+                        data.status === 'success';
+
+            console.log("YOLO Inference Ready:", ready);
+
+            return ready;
+
+        } catch (error) {
+            console.error("YOLO inference check failed:", error);
+            return false;
+        }
+    }
 
     async function initCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -266,41 +394,86 @@
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 activeStream = stream;
             }
+            audioContext = new AudioContext();
+            audioDestination = audioContext.createMediaStreamDestination();
+
+            microphoneSource = audioContext.createMediaStreamSource(stream);
+            microphoneSource.connect(audioDestination);
+            interviewerAudio = new Audio();
+            interviewerAudioSource = audioContext.createMediaElementSource(interviewerAudio);
+            interviewerAudioSource.connect(audioDestination);
+            interviewerAudioSource.connect(audioContext.destination);
             video.srcObject = stream;
 
+            // Monitor camera and microphone disconnection
+            stream.getTracks().forEach(track => {
+                    track.addEventListener('ended', () => {
+                            if (proctoringEnabled && !isWarningSubmitting) {
+                                const deviceName = track.kind === 'video'
+                                ? 'Camera'
+                                : 'Microphone';
+
+                                triggerWarning(deviceName + " disconnected.");
+                            }
+                    });
+            });
+
             return new Promise((resolve) => {
-                const onMetadataLoaded = async () => {
-                    try {
-                        await video.play();
-                        isCameraReady = true;
+                    const onMetadataLoaded = async () => {
+                        try {
+                            await video.play();
+                            const inferenceReady = await verifySecurityInference();
 
-                        let mime = 'video/webm;codecs=vp9,opus';
-                        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8,opus';
-                        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+                            if (!inferenceReady) {
+                                isCameraReady = false;
 
-                        mediaRecorder = new MediaRecorder(stream, {
-                            mimeType: mime,
-                            videoBitsPerSecond: 1000000 // Reduced to 1Mbps for better compatibility
-                        });
-                        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                        mediaRecorder.start(1000);
+                                stream.getTracks().forEach(track => track.stop());
+                                activeStream = null;
+                                video.srcObject = null;
 
-                        camStatus.innerText = "Camera & Mic Active";
-                        camStatus.className = "mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-[10px] font-bold text-green-500";
+                                if (audioContext && audioContext.state !== 'closed') {
+                                    await audioContext.close().catch(console.error);
+                                }
 
-                        startSecurityScanning();
-                        resolve(true);
-                    } catch (playErr) {
-                        camStatus.innerText = "Error: Video Playback Blocked";
-                        resolve(false);
+                                camStatus.innerText = "AI Security Backend Unavailable";
+
+                                resolve(false);
+                                return;
+                            }
+                            isCameraReady = true;
+
+                            let mime = 'video/webm;codecs=vp9,opus';
+                            if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8,opus';
+                            if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+
+                            console.log("MIC AUDIO TRACKS:", stream.getAudioTracks().map(t => ({ label: t.label, enabled: t.enabled, state: t.readyState })));
+                            const recordingStream = new MediaStream([
+                                    ...stream.getVideoTracks(),
+                                    ...audioDestination.stream.getAudioTracks()
+                            ]);
+
+                            mediaRecorder = new MediaRecorder(recordingStream, {
+                                    mimeType: mime,
+                                    videoBitsPerSecond: 1000000 // Reduced to 1Mbps for better compatibility
+                            });
+                            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                            mediaRecorder.start(1000);
+
+                            camStatus.innerText = "Camera & Mic Active";
+                            camStatus.className = "mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-[10px] font-bold text-green-500";
+
+                            resolve(true);
+                        } catch (playErr) {
+                            camStatus.innerText = "Error: Video Playback Blocked";
+                            resolve(false);
+                        }
+                    };
+
+                    if (video.readyState >= 1) {
+                        onMetadataLoaded();
+                    } else {
+                        video.onloadedmetadata = onMetadataLoaded;
                     }
-                };
-
-                if (video.readyState >= 1) {
-                    onMetadataLoaded();
-                } else {
-                    video.onloadedmetadata = onMetadataLoaded;
-                }
             });
         } catch (err) {
             camStatus.innerText = "Error: " + err.message;
@@ -311,8 +484,9 @@
 
     window.onload = () => {
         loadSecurityModel();
+        initFaceLandmarker();
         initVoice(); // Initialize voice list early so it has time to populate asynchronously
-        
+
         // Pre-warm SpeechSynthesis engine to prevent cold-start delay
         if (window.speechSynthesis) {
             try {
@@ -321,21 +495,21 @@
         }
 
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
+        .then(stream => {
                 activeStream = stream;
                 const overlayPrev = document.getElementById('overlayPreview');
                 if (overlayPrev) overlayPrev.srcObject = stream;
-            }).catch(() => { });
+        }).catch(() => { });
     };
 
     // Pre-warm voice synthesis on first click to satisfy browser activation policy
     document.addEventListener('click', () => {
-        if (window.speechSynthesis && !window.speechSynthesis.speaking) {
-            try {
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
-            } catch(e) {}
-        }
-    }, { once: true });
+            if (window.speechSynthesis && !window.speechSynthesis.speaking) {
+                try {
+                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+                } catch(e) {}
+            }
+        }, { once: true });
 
     function checkReadyState() { }
 
@@ -346,33 +520,268 @@
         const canvas = document.getElementById('captureCanvas');
         const ctx = canvas.getContext('2d');
 
-        setInterval(async () => {
-            if (!proctoringEnabled || isWarningSubmitting) return;
+        let scanInProgress = false;
 
-            canvas.width = 320; // Lower res for AI processing speed
-            canvas.height = 240;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = canvas.toDataURL('image/jpeg', 0.5);
+        canvas.width = 320;
+        canvas.height = 240;
+
+        if (securityScanInterval !== null) {
+            clearInterval(securityScanInterval);
+        }
+
+        const scanFrame = async () => {
+
+                if (!proctoringEnabled || isWarningSubmitting || scanInProgress) {
+                    return;
+                }
+
+                if (video.readyState < 2) return;
+
+                scanInProgress = true;
+
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const imageData = canvas.toDataURL('image/jpeg', 0.5);
+
+                    const response = await fetch("{% url 'proctor_frame' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                    image: imageData
+                            })
+                    });
+
+                    const res = await response.json();
+
+                    if (!proctoringEnabled || isWarningSubmitting) return;
+
+                    if (res.status === 'success') {
+                        document.getElementById('detectionIndicator')
+                        .classList.remove('hidden');
+
+                        const now = Date.now();
+                        const violations = res.violations || [];
+
+                        // Unauthorized objects: immediate termination
+                        const objectViolation = violations.find(
+                            v => v.startsWith("Unauthorized object:")
+                        );
+
+                        if (objectViolation) {
+                            showProxyAlert(objectViolation);
+                            triggerWarning(objectViolation);
+                            return;
+                        }
+
+                        // Multiple people verification
+                        if (violations.includes("PROXY ALERT: Multiple people detected!")) {
+
+                            if (multiplePeopleSince === null) {
+                                multiplePeopleSince = now;
+                            }
+
+                            if (now - multiplePeopleSince >= 2000) {
+                                showProxyAlert("Multiple people detected!");
+                                triggerWarning("Multiple people detected!");
+                                return;
+                            }
+
+                        } else {
+                            multiplePeopleSince = null;
+                        }
+
+                        // Missing person verification
+                        if (violations.includes("No person detected") &&
+                            Date.now() - lastFaceSeenAt > 1500) {
+
+                            if (noPersonSince === null) {
+                                noPersonSince = now;
+                            }
+
+                            if (now - noPersonSince >= 2000) {
+                                showProxyAlert("Candidate not visible in camera!");
+                                triggerWarning("Candidate not visible in camera!");
+                                return;
+                            }
+
+                        } else {
+                            noPersonSince = null;
+                        }
+
+                        hideProxyAlert();
+                    } else {
+                        console.warn("Security scan unavailable:", res);
+                    }
+
+                } catch (err) {
+                    console.error("Security scan error:", err);
+                } finally {
+                    scanInProgress = false;
+                }
+
+            };
+
+            scanFrame();
+            securityScanInterval = setInterval(scanFrame, 1000);
+    }
+
+    function isCameraBlocked(ctx, width, height) {
+
+        const pixels = ctx.getImageData(
+            0, 0, width, height
+        ).data;
+
+        let sum = 0;
+        let sumSquared = 0;
+        let count = 0;
+
+        for (let i = 0; i < pixels.length; i += 16) {
+
+            const brightness =
+            (pixels[i] * 0.299) +
+            (pixels[i + 1] * 0.587) +
+            (pixels[i + 2] * 0.114);
+
+            sum += brightness;
+            sumSquared += brightness * brightness;
+            count++;
+        }
+
+        const average = sum / count;
+
+        const variance =
+        (sumSquared / count) - (average * average);
+
+        return (
+            (average < 35 && variance < 150) ||
+            variance < 30
+        );
+    }
+
+    function startCameraBlockMonitoring() {
+        const canvas = document.createElement('canvas');
+
+        canvas.width = 160;
+        canvas.height = 120;
+
+        const ctx = canvas.getContext('2d', {
+            willReadFrequently: true
+        });
+
+        if (!ctx) return;
+
+        if (cameraBlockInterval !== null) {
+            clearInterval(cameraBlockInterval);
+        }
+
+        cameraBlockInterval = setInterval(() => {
+            if (!proctoringEnabled || isWarningSubmitting) {
+                return;
+            }
+
+            if (video.readyState < 2) return;
 
             try {
-                const response = await fetch("{% url 'proctor_frame' %}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: imageData })
-                });
-                const res = await response.json();
+                ctx.drawImage(
+                    video,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
 
-                if (res.status === 'success') {
-                    document.getElementById('detectionIndicator').classList.remove('hidden');
-                    if (!res.secure && res.violations.length > 0) {
-                        showProxyAlert(res.violations[0]);
-                        triggerWarning(res.violations[0]);
-                    } else {
-                        hideProxyAlert();
-                    }
+                if (isCameraBlocked(ctx, canvas.width, canvas.height)) {
+                    showProxyAlert("Camera blocked or covered!");
+
+                    triggerWarning("Camera blocked or covered!");
                 }
-            } catch (err) { }
-        }, 2000);
+            } catch (error) {
+                console.error("Camera block monitoring error:", error);
+            }
+        }, 250);
+    }
+
+    function startFaceMonitoring() {
+
+        if (!isFaceModelReady || !faceLandmarker) {
+            console.warn("Face Landmarker not ready");
+            return;
+        }
+
+        if (faceScanInterval !== null) {
+            clearInterval(faceScanInterval);
+        }
+
+        lookingAwaySince = null;
+
+        faceScanInterval = setInterval(() => {
+
+                if (!proctoringEnabled || isWarningSubmitting) return;
+
+                if (video.readyState < 2) return;
+
+                try {
+                    const now = performance.now();
+
+                    const result = faceLandmarker.detectForVideo(
+                        video,
+                        now
+                    );
+
+                    const matrix =
+                    result.facialTransformationMatrixes?.[0]?.data;
+
+                    if (!matrix) {
+                        console.warn("FACE TRACKING LOST");
+
+                        if (lookingAwaySince === null) {
+                            lookingAwaySince = now;
+                        }
+
+                        if (now - lookingAwaySince >= 4000) {
+                            triggerWarning(
+                                "Face not clearly visible or looking away for too long!"
+                            );
+                        }
+
+                        return;
+                    }
+
+                    lastFaceSeenAt = Date.now();
+
+                    const yaw = Math.atan2(
+                        matrix[8],
+                        matrix[10]
+                    ) * (180 / Math.PI);
+
+                    console.log("Head Yaw:", yaw.toFixed(2));
+                    const isLookingAway = Math.abs(yaw) > 20;
+
+                    if (isLookingAway) {
+
+                        if (lookingAwaySince === null) {
+                            lookingAwaySince = now;
+                        }
+
+                        if (now - lookingAwaySince >= 4000) {
+                            triggerWarning(
+                                "Looking away from the camera for too long!"
+                            );
+                        }
+
+                    } else {
+                        lookingAwaySince = null;
+                    }
+
+                } catch (error) {
+                    lookingAwaySince = null;
+                    console.error("Face monitoring error:", error);
+                }
+
+            }, 500);
     }
 
     function showProxyAlert(msg) {
@@ -387,12 +796,72 @@
     }
 
     let proctoringEnabled = false;
+    let securityScanInterval = null;
+    let multiplePeopleSince = null;
+    let noPersonSince = null;
+    let lastFaceSeenAt = 0;
+    let faceLandmarker = null;
+    let isFaceModelReady = false;
+    let lookingAwaySince = null;
+    let securityViolationReason = "";
+    let faceScanInterval = null;
+    let cameraBlockInterval = null;
+
+    async function initFaceLandmarker() {
+        try {
+            const vision = await window.FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm"
+            );
+
+            faceLandmarker = await window.FaceLandmarker.createFromOptions(
+                vision,
+                {
+                    baseOptions: {
+                        modelAssetPath:
+                        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                        delegate: "CPU"
+                    },
+                    runningMode: "VIDEO",
+                    numFaces: 1,
+                    minFaceDetectionConfidence: 0.5,
+                    minFacePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                    outputFacialTransformationMatrixes: true
+                }
+            );
+
+            isFaceModelReady = true;
+            console.log("Face Landmarker Ready");
+
+        } catch (error) {
+            isFaceModelReady = false;
+            console.error("Face Landmarker initialization failed:", error);
+        }
+    }
 
     async function loadSecurityModel() {
         // Now using server-side YOLOv8, so we just check readiness
         console.log("Using Server-side YOLOv8 proctoring.");
         const startBtnText = document.getElementById('startBtnText');
-        isModelReady = true;
+        isModelReady = false;
+
+        try {
+            const response = await fetch("{% url 'proctor_frame' %}", {
+                method: 'GET',
+                cache: 'no-store',
+                signal: AbortSignal.timeout(10000)
+            });
+
+            const data = await response.json();
+
+            isModelReady = response.ok && data.ready === true;
+
+            console.log("YOLO Backend Ready:", isModelReady);
+
+        } catch (error) {
+            isModelReady = false;
+            console.error("YOLO readiness check failed:", error);
+        }
         checkReadyState();
 
         nextBtn.disabled = true;
@@ -400,17 +869,18 @@
     }
 
     function updateQuestion() {
-        if (warnings > 0 || !proxyAlert.classList.contains('hidden') || (warningOverlay && !warningOverlay.classList.contains('hidden'))) {
-            finalizeInterview('Failed');
+
+        if (isWarningSubmitting) {
             return;
         }
+
         if (currentIdx < questions.length) {
             qText.innerText = questions[currentIdx].text;
             qNum.innerText = currentIdx + 1;
 
             document.querySelectorAll('#progressList > div').forEach((el, idx) => {
-                el.className = `flex items-center gap-4 transition-all duration-300 ${idx === currentIdx ? 'text-white font-bold opacity-100' : idx < currentIdx ? 'text-green-500 opacity-60' : 'text-zinc-600 opacity-50'}`;
-                el.querySelector('.w-2').className = `w-2 h-2 rounded-full ${idx === currentIdx ? 'bg-[#ef233c] shadow-[0_0_10px_#ef233c]' : idx < currentIdx ? 'bg-green-500' : 'bg-zinc-800'} flex-shrink-0 transition-all`;
+                    el.className = `flex items-center gap-4 transition-all duration-300 ${idx === currentIdx ? 'text-white font-bold opacity-100' : idx < currentIdx ? 'text-green-500 opacity-60' : 'text-zinc-600 opacity-50'}`;
+                    el.querySelector('.w-2').className = `w-2 h-2 rounded-full ${idx === currentIdx ? 'bg-[#ef233c] shadow-[0_0_10px_#ef233c]' : idx < currentIdx ? 'bg-green-500' : 'bg-zinc-800'} flex-shrink-0 transition-all`;
             });
 
             if (currentIdx === questions.length - 1) nextBtn.querySelector('span').innerText = "Finish Interview 🏁";
@@ -428,11 +898,25 @@
 
     function triggerWarning(msg) {
         if (!proctoringEnabled || isWarningSubmitting) return;
+
+        securityViolationReason = msg;
+
         warnings++;
+
         if (warnDisplay) warnDisplay.innerText = warnings;
-        if (msg && warnMsg) warnMsg.innerText = msg;
-        
-        // Immediately terminate/fail interview to prevent going to second question
+
+        if (warnMsg) {
+            warnMsg.innerText = msg + " Your interview has been terminated due to a security violation.";
+        }
+
+        if (warningOverlay) {
+            warningOverlay.classList.remove('hidden');
+            warningOverlay.classList.add('flex');
+
+            const btn = warningOverlay.querySelector('button');
+            if (btn) btn.style.display = 'none';
+        }
+
         finalizeInterview('Failed');
     }
 
@@ -444,33 +928,101 @@
     }
 
     async function finalizeInterview(status) {
-        if (isWarningSubmitting && status !== 'Failed') return;
+        if (isWarningSubmitting) return;
         isWarningSubmitting = true;
         nextBtn.disabled = true;
         nextBtn.querySelector('span').innerText = "Uploading Session...";
 
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
             await new Promise((resolve) => {
-                mediaRecorder.addEventListener('stop', resolve, { once: true });
-                mediaRecorder.stop();
+                    mediaRecorder.addEventListener('stop', resolve, { once: true });
+                    mediaRecorder.stop();
             });
         }
 
+        // Stop security monitoring
+        proctoringEnabled = false;
+        if (securityScanInterval !== null) {
+            clearInterval(securityScanInterval);
+            securityScanInterval = null;
+        }
+
+        // Stop face direction monitoring
+        if (faceScanInterval !== null) {
+            clearInterval(faceScanInterval);
+            faceScanInterval = null;
+        }
+
+        // Stop camera block monitoring
+        if (cameraBlockInterval !== null) {
+            clearInterval(cameraBlockInterval);
+            cameraBlockInterval = null;
+        }
+
+        lookingAwaySince = null;
+
+        if (faceLandmarker) {
+            faceLandmarker.close();
+            faceLandmarker = null;
+        }
+
+        isFaceModelReady = false;
+
+        // Stop speech recognition
+        if (recognition) {
+            recognition.onend = null;
+            recognition.onresult = null;
+            try {
+                recognition.abort();
+            } catch (e) {}
+        }
+
+        // Stop AI voice
+        if (synth) {
+            synth.cancel();
+        }
+
+        if (interviewerAudio) {
+            interviewerAudio.pause();
+        }
+
+        // Stop recording stream tracks
+        if (mediaRecorder && mediaRecorder.stream) {
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+
+        // Stop camera and microphone
+        if (activeStream) {
+            activeStream.getTracks().forEach(track => track.stop());
+            activeStream = null;
+        }
+
+        video.srcObject = null;
+        isCameraReady = false;
+
+        // Close audio system
+        if (audioContext && audioContext.state !== 'closed') {
+            await audioContext.close().catch(console.error);
+        }
+
+        console.log("FINAL INTERVIEW DATA:", { status, transcript: fullTranscript });
         const payload = {
-            round_type: roundType, status: status, warnings: warnings,
+            round_type: roundType, status: status, 
+            warnings: warnings,
+            violation_reason: securityViolationReason,
             transcript: fullTranscript,
             metrics: {
                 filler_count: fillerCount,
                 wpm: document.getElementById('paceVal') ? parseInt(document.getElementById('paceVal').innerText) || 0 : 0,
-                confidence: document.getElementById('confVal') ? parseInt(document.getElementById('confVal').innerText) || 70 : 70
+                confidence: document.getElementById('confVal') ? parseInt(document.getElementById('confVal').innerText) || 0 : 0
             }
         };
 
         try {
             const response = await fetch(processUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
             });
             const res = await response.json();
             if (res.status === 'success') {
@@ -480,14 +1032,38 @@
                     formData.append('video', blob, 'interview.webm');
                     formData.append('session_id', res.session_id);
                     const uploadResponse = await fetch(videoUploadUrl, {
-                        method: 'POST',
-                        body: formData
+                            method: 'POST',
+                            body: formData
                     });
 
-                if (!uploadResponse.ok) {
-                    throw new Error("Video upload failed: HTTP " + uploadResponse.status);
-                };
+                    if (!uploadResponse.ok) {
+                        throw new Error("Video upload failed: HTTP " + uploadResponse.status);
+                    };
                 }
+                if (status === 'Failed') {
+
+                    // Wait until user returns to interview tab
+                    if (document.hidden) {
+                        await new Promise(resolve => {
+                                function waitForVisible() {
+                                    if (!document.hidden) {
+                                        document.removeEventListener(
+                                            'visibilitychange', waitForVisible
+                                        );
+                                        resolve();
+                                    }
+                                }
+
+                                document.addEventListener(
+                                    'visibilitychange', waitForVisible
+                                );
+                        });
+                    }
+
+                    // Keep security popup visible for 5 seconds
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+
                 window.location.href = resultBaseUrl + res.session_id + '/';
             } else {
                 window.location.href = "{% url 'dashboard' %}";
@@ -502,61 +1078,91 @@
         }
     }
 
-async function startInterview() {
+    async function startInterview() {
 
-    console.log("Interview Started");
+        if (!isModelReady) {
+            alert("AI security backend is not ready. Please wait or refresh the page.");
+            return;
+        }
 
-    const overlay = document.getElementById('startOverlay');
+        if (!isFaceModelReady || !faceLandmarker) {
+            alert(
+                "AI security system is not ready. Please wait or refresh the page."
+            );
+            return;
+        }
 
-    // Start camera first
-    const cameraStarted = await initCamera();
+        console.log("Interview Started");
 
-    console.log("Camera:", cameraStarted);
+        const overlay = document.getElementById('startOverlay');
 
-    // Remove overlay completely
-    overlay.classList.add('hidden');
+        // Start camera first
+        const cameraStarted = await initCamera();
 
-    overlay.classList.remove(
-        'flex',
-        'items-center',
-        'justify-center'
-    );
+        if (!cameraStarted) {
+            if (camStatus.innerText === "AI Security Backend Unavailable") {
+                alert("AI security system is unavailable. Please refresh the page and try again.");
+            } else {
+                alert("Camera or microphone initialization failed. Please check permissions and try again.");
+            }
 
-    overlay.style.display = 'none';
-    overlay.style.visibility = 'hidden';
-    overlay.style.opacity = '0';
-    overlay.style.pointerEvents = 'none';
+            return;
+        }
 
-    // Start systems
-    initVoice();
-    initRecognition();
+        console.log("Camera:", cameraStarted);
 
-    // Start first question
-    currentIdx = 0;
-    updateQuestion();
+        // Remove overlay completely
+        overlay.classList.add('hidden');
 
-    // Enable proctoring after 5 sec
-    setTimeout(() => {
+        overlay.classList.remove(
+            'flex',
+            'items-center',
+            'justify-center'
+        );
+
+        overlay.style.display = 'none';
+        overlay.style.visibility = 'hidden';
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+
+        // Start systems
+        initVoice();
+        initRecognition();
+
+        // Enable security before first question
         proctoringEnabled = true;
+
+        multiplePeopleSince = null;
+        noPersonSince = null;
+        lookingAwaySince = null;
+
+        startSecurityScanning();
+        startFaceMonitoring();
+        startCameraBlockMonitoring();
+
         console.log("Proctoring Enabled");
-    }, 5000);
-}
+
+        // Start first question
+        currentIdx = 0;
+        nextBtn.disabled = false;
+        updateQuestion();
+    }
     function initVoice() {
         function setVoiceList() {
             if (!synth) return;
             let voices = synth.getVoices();
             if (voices.length === 0) return;
-            
+
             // Filter out Hindi/non-English voices completely from preferred selection to avoid Aarti issues
             const englishVoices = voices.filter(v => v.lang.startsWith('en') && !v.lang.startsWith('hi') && !v.name.toLowerCase().includes('aarti') && !v.name.toLowerCase().includes('heera'));
-            
+
             preferredVoice = englishVoices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('female'))
                 || englishVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
                 || englishVoices.find(v => v.lang === 'en-IN')
                 || englishVoices.find(v => v.lang.startsWith('en'))
                 || voices.find(v => v.lang.startsWith('en'))
                 || voices[0];
-                
+
             const indicator = document.getElementById('voiceIndicator') || document.getElementById('voiceStatus');
             if (preferredVoice && indicator) {
                 indicator.innerHTML = `<div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><iconify-icon icon="lucide:volume-2" class="text-blue-400"></iconify-icon> AI Voice: ${preferredVoice.name}</div>`;
@@ -567,8 +1173,9 @@ async function startInterview() {
     }
 
     function speak(text) {
+        if (interviewerAudio && audioContext) audioContext.resume();
         if (!synth) return;
-        
+
         const needCancel = synth.speaking;
         if (needCancel) {
             synth.cancel();
@@ -578,58 +1185,142 @@ async function startInterview() {
         const delay = needCancel ? 300 : 50;
 
         setTimeout(() => {
-            try {
-                const utter = new SpeechSynthesisUtterance(text);
-                
-                // Explicitly set language to English (India) to prevent default falling back to Hindi/Aarti
-                utter.lang = preferredVoice ? preferredVoice.lang : 'en-IN';
-                
-                if (preferredVoice) {
-                    utter.voice = preferredVoice;
-                }
+                try {
+                    const utter = new SpeechSynthesisUtterance(text);
 
-                utter.pitch = 1.0;
-                utter.rate = 1.0; // Keep at 1.0 to avoid compatibility issues with Online/Natural voices
-                utter.volume = 1.0;
+                    // Explicitly set language to English (India) to prevent default falling back to Hindi/Aarti
+                    utter.lang = preferredVoice ? preferredVoice.lang : 'en-IN';
 
-                utter.onstart = () => {
-                    console.log("Speech started successfully for text:", text.substring(0, 30) + "...");
-                };
-
-                utter.onend = () => {
-                    console.log("Speech completed successfully.");
-                };
-
-                utter.onerror = (e) => {
-                    console.error("SpeechSynthesisUtterance error:", e.error, e);
-                    
-                    // Fallback to local offline English voice if the online voice failed
-                    if (preferredVoice && (preferredVoice.name.toLowerCase().includes('online') || preferredVoice.name.toLowerCase().includes('natural'))) {
-                        console.warn("Online voice failed. Falling back to local offline English voice...");
-                        let voices = synth.getVoices();
-                        let localVoice = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('online') && !v.name.toLowerCase().includes('natural'));
-                        if (localVoice) {
-                            preferredVoice = localVoice;
-                            const indicator = document.getElementById('voiceIndicator') || document.getElementById('voiceStatus');
-                            if (indicator) {
-                                indicator.innerHTML = `<div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><iconify-icon icon="lucide:volume-2" class="text-blue-400"></iconify-icon> Fallback Voice: ${preferredVoice.name}</div>`;
-                            }
-                            // Retry speak after a short delay
-                            setTimeout(() => {
-                                speak(text);
-                            }, 300);
-                            return;
-                        }
+                    if (preferredVoice) {
+                        utter.voice = preferredVoice;
                     }
-                    synth.resume();
-                };
 
-                console.log("SpeechSynthesis attempting to speak with voice:", preferredVoice ? preferredVoice.name : "default en-IN");
-                synth.speak(utter);
-            } catch (err) {
-                console.error("Error in speech synthesis speak trigger:", err);
+                    utter.pitch = 1.0;
+                    utter.rate = 1.0; // Keep at 1.0 to avoid compatibility issues with Online/Natural voices
+                    utter.volume = 1.0;
+
+                    utter.onstart = () => {
+                        console.log("Speech started successfully for text:", text.substring(0, 30) + "...");
+                    };
+
+                    utter.onend = () => {
+                        console.log("Speech completed successfully.");
+                    };
+
+                    utter.onerror = (e) => {
+                        console.error("SpeechSynthesisUtterance error:", e.error, e);
+
+                        // Fallback to local offline English voice if the online voice failed
+                        if (preferredVoice && (preferredVoice.name.toLowerCase().includes('online') || preferredVoice.name.toLowerCase().includes('natural'))) {
+                            console.warn("Online voice failed. Falling back to local offline English voice...");
+                            let voices = synth.getVoices();
+                            let localVoice = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('online') && !v.name.toLowerCase().includes('natural'));
+                            if (localVoice) {
+                                preferredVoice = localVoice;
+                                const indicator = document.getElementById('voiceIndicator') || document.getElementById('voiceStatus');
+                                if (indicator) {
+                                    indicator.innerHTML = `<div class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><iconify-icon icon="lucide:volume-2" class="text-blue-400"></iconify-icon> Fallback Voice: ${preferredVoice.name}</div>`;
+                                }
+                                // Retry speak after a short delay
+                                setTimeout(() => {
+                                        speak(text);
+                                    }, 300);
+                                return;
+                            }
+                        }
+                        synth.resume();
+                    };
+
+                    console.log("SpeechSynthesis attempting to speak with voice:", preferredVoice ? preferredVoice.name : "default en-IN");
+                    playInterviewerAudio(text);
+                } catch (err) {
+                    console.error("Error in speech synthesis speak trigger:", err);
+                }
+            }, delay);
+    }
+
+    async function playInterviewerAudio(text) {
+        if (isWarningSubmitting) return;
+
+        isInterviewerSpeaking = true;
+        nextBtn.disabled = true;
+
+        if (recognition) {
+            try {
+                recognition.abort();
+            } catch (e) {}
+        }
+        try {
+            const response = await fetch(
+                '/interview/tts/?text=' + encodeURIComponent(text)
+            );
+
+            if (!response.ok) throw new Error('TTS request failed');
+
+            const data = await response.json();
+
+            if (isWarningSubmitting || !proctoringEnabled) return;
+
+            if (data.status !== 'success' || !data.audio_uri) {
+                throw new Error('Audio unavailable');
             }
-        }, delay);
+
+            interviewerAudio.pause();
+            interviewerAudio.src = data.audio_uri;
+            interviewerAudio.currentTime = 0;
+
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            if (isWarningSubmitting || !proctoringEnabled) return;
+
+            interviewerAudio.onended = () => {
+                setTimeout(() => {
+                        if (isWarningSubmitting || !proctoringEnabled) return;
+
+                        isInterviewerSpeaking = false;
+                        currentQuestionStartTime = Date.now();
+                        nextBtn.disabled = false;
+
+                        if (recognition) {
+                            try {
+                                recognition.start();
+                                console.log("Candidate speech recognition started");
+                            } catch (e) {
+                                console.log("Recognition start skipped:", e);
+                            }
+                        }
+                    }, 500);
+            };
+
+            interviewerAudio.onerror = () => {
+                if (isWarningSubmitting || !proctoringEnabled) return;
+
+                console.error("AI audio playback failed");
+
+                interviewerAudio.onended();
+            };
+
+            await interviewerAudio.play();
+
+        } catch (error) {
+            console.error('Interviewer audio error:', error);
+
+            if (isWarningSubmitting || !proctoringEnabled) return;
+
+            isInterviewerSpeaking = false;
+            currentQuestionStartTime = Date.now();
+            nextBtn.disabled = false;
+
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.log("Recognition restart skipped:", e);
+                }
+            }
+        }
     }
 
     function initRecognition() {
@@ -640,30 +1331,30 @@ async function startInterview() {
         recognition.interimResults = true;
         recognition.lang = 'en-IN';
         recognition.onresult = (event) => {
+            if (isInterviewerSpeaking || isWarningSubmitting) return;
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     const text = event.results[i][0].transcript.toLowerCase();
                     fullTranscript += text + " ";
+                    console.log("TRANSCRIPT CHECK:", fullTranscript);
                     processLiveText(text);
                 }
             }
         };
         recognition.onend = () => {
-            if (!isWarningSubmitting) {
+            if (!isWarningSubmitting && !isInterviewerSpeaking) {
                 setTimeout(() => {
-                    try {
-                        if (recognition) recognition.start();
-                    } catch (e) {
-                        console.log("Speech recognition restart skipped:", e);
-                    }
-                }, 400); // 400ms delay helps prevent InvalidStateError
+                        try {
+                            if (recognition && !isInterviewerSpeaking && !isWarningSubmitting) {
+                                recognition.start();
+                            }
+                        } catch (e) {
+                            console.log("Speech recognition restart skipped:", e);
+                        }
+                    }, 400); // 400ms delay helps prevent InvalidStateError
             }
         };
-        try {
-            recognition.start();
-        } catch (e) {
-            console.log("Speech recognition initial start skipped:", e);
-        }
+
     }
 
     function processLiveText(text) {
